@@ -1,0 +1,16 @@
+{
+  "name": "@chainaim/client-privacy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "chainaim-client-privacy: the PC-side extract/mask/restore/scan code served on loopback, so hack/ap4m needs no import into services/.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"test/*.test.ts\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

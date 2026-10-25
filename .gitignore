@@ -38,9 +38,17 @@ wallets/
 # AP4M SDK state: signed vouchers (purchase.json) and the merchant's payment store
 **/agent-state/
 **/merchant-state/
+# the same directories when named with a leading dot, which the globs above miss
+**/.agent-state/
+**/.merchant-state/
+**/.merchant-stub-state/
+**/.ap4m-merchant-state/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 # vendor-confidential decks and installers stay out of git
 *.pptx
 *.msi
+**/.ap4m-ledger/
+**/.agent-state-*/
+**/.merchant.log
