@@ -1,0 +1,37 @@
+{
+  "notes": "Model registry for a CPU-only PC with about 8 GB RAM (no NVIDIA GPU). Used by test-console/modes/ollama-cpu-8gb.json; config/local-models.json stays the GPU PC's registry. Same format and rules as config/local-models.json. Sizing: numCtx 8192 keeps the context memory small (qwen2.5:3b loaded at 2.2 GB with context 4096 on this PC, measured 2026-10-21; eval 11.65 tokens/s). maxOutputTokens 2048 keeps a worst-case answer under the 280 s attempt limit at about 11 tokens/s; it must be the same for every model. The R1 model spends output tokens on thinking, so with 2048 it may sometimes return an empty answer: use it for quick tests only. deepseek-r1:8b is left out: too large for 8 GB RAM.",
+  "ollamaUrl": "http://host.docker.internal:11434/v1",
+  "defaultModel": "local/qwen2.5-3b",
+  "defaults": {
+    "numCtx": 8192,
+    "maxOutputTokens": 2048,
+    "supportsTools": false,
+    "quality": 5,
+    "tasks": ["chat"],
+    "speed": "medium"
+  },
+  "models": [
+    {
+      "id": "local/qwen2.5-3b",
+      "servedModel": "qwen2.5:3b",
+      "supportsTools": true,
+      "quality": 6,
+      "tasks": ["chat", "extraction", "rewrite", "tool_use", "long_document"]
+    },
+    {
+      "id": "local/qwen2.5-1.5b",
+      "servedModel": "qwen2.5:1.5b-instruct",
+      "supportsTools": true,
+      "quality": 4,
+      "tasks": ["chat", "extraction", "rewrite"],
+      "speed": "fast"
+    },
+    {
+      "id": "local/deepseek-r1-1.5b",
+      "servedModel": "deepseek-r1:1.5b",
+      "quality": 4,
+      "tasks": ["chat", "reasoning"],
+      "speed": "slow"
+    }
+  ]
+}

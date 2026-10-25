@@ -1,0 +1,11 @@
+{
+  "description": "Local Ollama models on this PC's GPU. Models, context and output budgets: config/local-models.json (edit it, re-run use-ollama.cmd; no rebuild).",
+  "modelSource": "catalog",
+  "localModels": "config/local-models.json",
+  "mountConfig": true,
+  "secretEnv": [],
+  "staticEnv": {},
+  "flags": ["--attempt-timeout-ms", "240000", "--max-attempts", "2"],
+  "testTimeoutSec": 300,
+  "doneMessage": "Local Ollama models are on. Ask in the console at http://127.0.0.1:8730/ (section 2)."
+}

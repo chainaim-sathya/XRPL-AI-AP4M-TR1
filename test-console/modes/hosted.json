@@ -1,0 +1,10 @@
+{
+  "description": "Hosted routing: OpenRouter's free models with Jev and the data policy (same path as the Railway image).",
+  "modelSource": "openrouter-free",
+  "mountConfig": false,
+  "secretEnv": ["OPENROUTER_API_KEY"],
+  "staticEnv": {},
+  "flags": ["--cooldown-ms", "300000", "--max-attempts", "5"],
+  "testTimeoutSec": 90,
+  "doneMessage": "Hosted models are on. Ask in the console at http://127.0.0.1:8730/ (section 2)."
+}

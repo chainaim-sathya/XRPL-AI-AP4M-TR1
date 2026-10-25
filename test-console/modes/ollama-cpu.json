@@ -1,0 +1,11 @@
+{
+  "description": "Local Ollama models when Ollama runs on the CPU (on battery, or ASUS GPU Mode Eco). Same registry, one longer attempt; prefer local/qwen2.5-3b, since the R1 models think for minutes on a CPU.",
+  "modelSource": "catalog",
+  "localModels": "config/local-models.json",
+  "mountConfig": true,
+  "secretEnv": [],
+  "staticEnv": {},
+  "flags": ["--attempt-timeout-ms", "280000", "--max-attempts", "1"],
+  "testTimeoutSec": 600,
+  "doneMessage": "Local Ollama models are on (CPU timings). Ask in the console at http://127.0.0.1:8730/ (section 2). An attempt stops at 280 s, under the console's own ~300 s wait."
+}

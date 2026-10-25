@@ -1,0 +1,100 @@
+{
+  "version": "bedrock-2026-10-24",
+  "notes": "Nemotron 3 Nano on Amazon Bedrock (ap-southeast-2, the free-plan project's region) first, local Ollama Qwen as fallback. Masked text only reaches any model (the gateway masks before dispatch). Routing order comes from config/scores.bedrock.json (--scores), not from the profiles below, which the catalog format requires. Zones are recorded but not yet used for routing (xrplh-7 policy work), so local Qwen is a fallback here, not a local-only route. Bedrock pricing is AWS's Standard on-demand rate for NVIDIA Nemotron 3 Nano 30B A3B in Asia Pacific (Sydney): USD 0.0618 per 1M input tokens, 0.2472 per 1M output tokens, read from https://aws.amazon.com/bedrock/pricing/ (page updated 2026-10-21) on 2026-10-24; Priority tier is +75%, Flex and Batch -50%. The deployment baseUrl (bedrock-runtime OpenAI-compatible endpoint) is verified: rig R5 --openai-check passed 6/6 and paid agent runs were served through it on 2026-10-24 (STATE.md); https://bedrock-mantle.ap-southeast-2.api.aws/v1 also passed R5. The local Qwen servedModel names are the context variants scripts/local-models.ts creates in Ollama (switch-models.ps1 -To ollama-cpu-8gb creates them).",
+  "models": [
+    {
+      "id": "bedrock/nemotron-nano-3-30b",
+      "zone": "private-cloud",
+      "capabilities": {
+        "contextWindow": 256000,
+        "maxOutputTokens": 8192,
+        "supportsTools": true,
+        "supportsVision": false
+      },
+      "pricing": {
+        "inputPerM": 0.0618,
+        "outputPerM": 0.2472
+      },
+      "deployments": [
+        {
+          "id": "nemotron-nano-3-30b@bedrock-ap-southeast-2",
+          "adapter": "openai",
+          "baseUrl": "https://bedrock-runtime.ap-southeast-2.amazonaws.com/openai/v1",
+          "servedModel": "nvidia.nemotron-nano-3-30b",
+          "apiKeyEnv": "BEDROCK_API_KEY",
+          "probe": false
+        }
+      ]
+    },
+    {
+      "id": "local/qwen2.5-3b",
+      "zone": "local",
+      "capabilities": {
+        "contextWindow": 8192,
+        "maxOutputTokens": 2048,
+        "supportsTools": true,
+        "supportsVision": false
+      },
+      "pricing": {
+        "inputPerM": 0,
+        "outputPerM": 0
+      },
+      "deployments": [
+        {
+          "id": "qwen2.5-3b@ollama-host",
+          "adapter": "openai",
+          "baseUrl": "http://host.docker.internal:11434/v1",
+          "servedModel": "chainaim-qwen2.5-3b-ctx8192"
+        }
+      ]
+    },
+    {
+      "id": "local/qwen2.5-1.5b",
+      "zone": "local",
+      "capabilities": {
+        "contextWindow": 8192,
+        "maxOutputTokens": 2048,
+        "supportsTools": true,
+        "supportsVision": false
+      },
+      "pricing": {
+        "inputPerM": 0,
+        "outputPerM": 0
+      },
+      "deployments": [
+        {
+          "id": "qwen2.5-1.5b@ollama-host",
+          "adapter": "openai",
+          "baseUrl": "http://host.docker.internal:11434/v1",
+          "servedModel": "chainaim-qwen2.5-1.5b-instruct-ctx8192"
+        }
+      ]
+    }
+  ],
+  "profiles": {
+    "auto": {
+      "SIMPLE": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "MEDIUM": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "COMPLEX": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "REASONING": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"]
+    },
+    "eco": {
+      "SIMPLE": ["local/qwen2.5-3b", "bedrock/nemotron-nano-3-30b", "local/qwen2.5-1.5b"],
+      "MEDIUM": ["local/qwen2.5-3b", "bedrock/nemotron-nano-3-30b", "local/qwen2.5-1.5b"],
+      "COMPLEX": ["local/qwen2.5-3b", "bedrock/nemotron-nano-3-30b", "local/qwen2.5-1.5b"],
+      "REASONING": ["local/qwen2.5-3b", "bedrock/nemotron-nano-3-30b", "local/qwen2.5-1.5b"]
+    },
+    "premium": {
+      "SIMPLE": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "MEDIUM": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "COMPLEX": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+      "REASONING": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"]
+    }
+  },
+  "agentic": {
+    "SIMPLE": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+    "MEDIUM": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+    "COMPLEX": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"],
+    "REASONING": ["bedrock/nemotron-nano-3-30b", "local/qwen2.5-3b", "local/qwen2.5-1.5b"]
+  }
+}

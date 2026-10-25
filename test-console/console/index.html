@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChainAim Audit Desk</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* A worksheet on a desk. A persistent left rail selects the task; the sheet holds one task at a
+   time, laid out as a report with hairline rules instead of cards. The chrome is near-monochrome
+   on purpose, so the only colour on the page is the data's own classification. */
+:root {
+  --paper: #f8f9fb;
+  --sheet: #ffffff;
+  --rule: #e2e6ec;
+  --rule-firm: #c8cfd9;
+  --ink: #14171d;
+  --ink-2: #474f5c;
+  --muted: #7c8595;
+  --field: #f3f5f8;
+  --btn: #14171d;
+  --btn-ink: #ffffff;
+  --ok: #0d7045;
+  --warn: #b42318;
+  --amber: #8a6209;
+  /* Classification hues: the one place colour is allowed. */
+  --e-person: #3053cf;
+  --e-contact: #96681a;
+  --e-health: #bf2b31;
+  --e-card: #9b2672;
+  --e-id: #6a3fb8;
+  --e-other: #5d6878;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101216; --sheet: #171a1f; --rule: #272c34; --rule-firm: #3a414b;
+    --ink: #e9ebef; --ink-2: #b0b8c3; --muted: #828b97; --field: #1d2127;
+    --btn: #e9ebef; --btn-ink: #101216;
+    --ok: #4cc38a; --warn: #ff8a80; --amber: #e0b155;
+    --e-person: #7f9dff; --e-contact: #d9a640; --e-health: #ef6a6f;
+    --e-card: #da6cb0; --e-id: #b394ef; --e-other: #8b96a6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101216; --sheet: #171a1f; --rule: #272c34; --rule-firm: #3a414b;
+  --ink: #e9ebef; --ink-2: #b0b8c3; --muted: #828b97; --field: #1d2127;
+  --btn: #e9ebef; --btn-ink: #101216;
+  --ok: #4cc38a; --warn: #ff8a80; --amber: #e0b155;
+  --e-person: #7f9dff; --e-contact: #d9a640; --e-health: #ef6a6f;
+  --e-card: #da6cb0; --e-id: #b394ef; --e-other: #8b96a6;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 400 15px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* masthead */
+header.top { padding-block: 26px 20px; border-bottom: 1px solid var(--rule-firm); display: grid; gap: 14px; }
+.titleline { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
+.titleline h1 { margin: 0; font: 400 clamp(1.9rem, 1.5rem + 2vw, 2.8rem)/1.05 var(--serif); letter-spacing: -0.01em; }
+.titleline .sub { font: italic 400 clamp(1rem, .95rem + .3vw, 1.15rem)/1.3 var(--serif); color: var(--muted); margin-bottom: .25em; }
+header.top p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+header.top code { font: 500 .88em var(--mono); background: var(--field); border: 1px solid var(--rule); border-radius: 2px; padding: 1px 5px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.meta span { font: 500 11.5px/1 var(--mono); color: var(--muted); display: inline-flex; align-items: center; gap: 7px; }
+.led { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); flex: none; }
+.themebtn { margin-left: auto; border: 1px solid var(--rule-firm); background: transparent; color: var(--ink-2); font: 500 11.5px/1 var(--mono); padding: 7px 11px; border-radius: 3px; cursor: pointer; }
+.themebtn:hover { color: var(--ink); border-color: var(--ink); }
+.flag { justify-self: start; border: 1px solid var(--rule-firm); border-left: 3px solid var(--warn); background: var(--sheet); color: var(--warn); font: 500 11.5px/1.5 var(--mono); padding: 9px 13px; border-radius: 0 3px 3px 0; max-width: 80ch; }
+
+/* desk */
+.desk { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 36px; padding-top: 28px; }
+@media (max-width: 860px) { .desk { grid-template-columns: 1fr; gap: 20px; } }
+nav.rail { align-self: start; position: sticky; top: 16px; display: grid; gap: 2px; }
+@media (max-width: 860px) { nav.rail { position: static; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; border: 1px solid var(--rule-firm); border-radius: 3px; overflow: hidden; } }
+nav.rail button { text-align: left; border: 0; background: transparent; cursor: pointer; color: var(--ink-2); font: 500 14px/1.3 var(--sans); padding: 11px 13px; border-left: 2px solid transparent; display: grid; gap: 3px; border-radius: 0 3px 3px 0; margin: 0; }
+nav.rail button .idx { font: 500 10px/1 var(--mono); letter-spacing: .14em; color: var(--muted); }
+nav.rail button:hover { background: var(--sheet); color: var(--ink); }
+nav.rail button[aria-current="true"] { background: var(--sheet); color: var(--ink); border-left-color: var(--ink); }
+@media (max-width: 860px) {
+  nav.rail button { border-left: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 9px 10px; font-size: 12.5px; }
+  nav.rail button[aria-current="true"] { border-bottom-color: var(--ink); }
+  nav.rail button .idx { display: none; }
+}
+
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: clamp(18px, 1.2rem + 1vw, 30px); min-width: 0; }
+.sheet > h2 { margin: 0 0 6px; font: 400 clamp(1.4rem, 1.2rem + .8vw, 1.75rem)/1.15 var(--serif); letter-spacing: -0.01em; }
+.sheet > .deck { margin: 0 0 22px; color: var(--muted); max-width: 62ch; }
+.block { display: grid; gap: 12px; padding-block: 20px; border-top: 1px solid var(--rule); }
+.block:first-child { border-top: 0; padding-top: 0; }
+.blabel, .label { font: 500 10.5px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+
+textarea { width: 100%; min-height: 96px; resize: vertical; padding: 13px 14px; border: 1px solid var(--rule-firm); border-radius: 3px; background: var(--field); color: var(--ink); font: 400 13.5px/1.7 var(--mono); }
+textarea:focus-visible, button:focus-visible, select:focus-visible, label.drop:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
+select { width: 100%; max-width: 32rem; padding: 10px 12px; border: 1px solid var(--rule-firm); border-radius: 3px; background: var(--field); color: var(--ink); font: 400 13.5px/1.4 var(--mono); }
+label.drop { display: flex; align-items: center; gap: 11px; cursor: pointer; border: 1px solid var(--rule-firm); border-radius: 3px; padding: 13px 14px; background: var(--field); }
+label.drop:hover { border-color: var(--ink); }
+label.drop input[type=file] { display: none; }
+label.drop .plus { font: 400 20px/1 var(--serif); color: var(--muted); flex: none; }
+label.drop .lines { display: grid; gap: 2px; min-width: 0; }
+label.drop b { font: 500 13.5px/1.3 var(--sans); }
+.muted, .small { font: 400 12px/1.55 var(--mono); color: var(--muted); }
+.err { font: 400 12px/1.55 var(--mono); color: var(--warn); }
+
+.row-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.paybox { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-weight: 600; cursor: pointer; }
+button { margin: 0; border: 1px solid var(--btn); background: var(--btn); color: var(--btn-ink); font: 600 13.5px/1 var(--sans); padding: 11px 18px; border-radius: 3px; cursor: pointer; }
+button:hover { opacity: .88; }
+button.ghost { border-color: var(--rule-firm); background: transparent; color: var(--ink-2); font-weight: 500; }
+button.ghost:hover { border-color: var(--ink); color: var(--ink); opacity: 1; }
+button:disabled { opacity: .5; cursor: wait; }
+.cost { font: 500 11.5px/1 var(--mono); color: var(--muted); margin-left: auto; }
+
+/* verdict strip: the summary before the detail */
+.verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; margin: 0; }
+.cell { background: var(--sheet); padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.cell dt { font: 500 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.cell dd { margin: 0; font: 600 17px/1.2 var(--sans); font-variant-numeric: tabular-nums; word-break: break-word; }
+.cell dd.phi { color: var(--warn); }
+.cell dd.clear { color: var(--ok); }
+.cell dd small { font: 500 11.5px/1.35 var(--mono); color: var(--muted); display: block; margin-top: 3px; font-weight: 500; }
+
+/* documents */
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
+.col { min-width: 0; display: grid; gap: 8px; align-content: start; }
+.colhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; }
+.colhead b { font: 500 11px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; color: var(--ink-2); }
+.colhead em { font: italic 400 13px/1 var(--serif); color: var(--muted); }
+.doc, .box, pre { white-space: pre-wrap; word-break: break-word; font: 400 13px/1.9 var(--mono); max-height: 320px; overflow: auto; min-width: 0; margin: 0; padding: 2px 0; background: none; }
+pre, .box { background: var(--field); border: 1px solid var(--rule); border-radius: 3px; padding: 11px 13px; line-height: 1.7; }
+mark.ent { --c: var(--e-other); background: color-mix(in srgb, var(--c) 16%, transparent); border-bottom: 2px solid var(--c); color: inherit; padding: 1px 2px; }
+.ph { color: var(--ink); font-weight: 600; background: var(--field); border: 1px solid var(--rule-firm); border-radius: 2px; padding: 0 3px; }
+.gone { color: var(--warn); font-weight: 600; text-decoration: line-through; }
+
+/* pills / legend */
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule-firm); border-radius: 2px; padding: 4px 9px; font: 500 11.5px/1.3 var(--mono); color: var(--ink-2); margin: 0 6px 0 0; }
+.pill.phi { border-color: var(--warn); color: var(--warn); }
+.pill.good { border-color: var(--ok); color: var(--ok); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.legend .pill { margin: 0; }
+.legend i { --c: var(--e-other); width: 8px; height: 8px; border-radius: 1px; background: var(--c); display: inline-block; flex: none; }
+
+/* tables */
+.scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; font: 400 12.5px/1.55 var(--mono); }
+th, td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: var(--field); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; }
+td.ph { background: none; border: 0; padding: 9px 13px; white-space: nowrap; }
+table.kv th { width: 11rem; white-space: nowrap; }
+.xmodels { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 12px; }
+.xmodels select { display: block; width: 100%; margin-top: 6px; }
+.addr { word-break: break-all; }
+a { color: var(--ink); text-underline-offset: 3px; }
+
+/* conversation */
+.chat { display: grid; gap: 0; }
+.bubble { display: grid; gap: 7px; padding-block: 14px; border-top: 1px solid var(--rule); max-width: none; }
+.chat > .bubble:first-child { border-top: 0; padding-top: 0; }
+.bubble.ai { border-left: 2px solid var(--rule-firm); padding-left: 16px; }
+.bubble .who { font: 500 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.bubble.you > div:last-child { white-space: pre-wrap; word-break: break-word; }
+.md { line-height: 1.65; }
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p, .md ul, .md ol, .md pre, .md blockquote { margin: 0 0 .7em; }
+.md ul, .md ol { padding-left: 1.4em; }
+.md h1, .md h2, .md h3 { font: 400 1.15rem/1.2 var(--serif); margin: .8em 0 .4em; }
+.md code { background: var(--field); padding: 1px 5px; border-radius: 2px; font: .88em var(--mono); }
+.md pre code { background: none; padding: 0; }
+.md blockquote { padding-left: 12px; border-left: 2px solid var(--rule-firm); color: var(--muted); }
+
+details.behind { border-top: 1px solid var(--rule); padding-top: 16px; margin-top: 4px; }
+details.behind > summary { cursor: pointer; font: 500 11px/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
+details.behind > summary:hover { color: var(--ink); }
+details.behind > .row { margin-top: 14px; }
+.empty { font: 400 12.5px/1.65 var(--mono); color: var(--muted); border: 1px dashed var(--rule-firm); border-radius: 3px; padding: 12px 13px; }
+input[type=search] { padding: 9px 11px; border: 1px solid var(--rule-firm); border-radius: 3px; background: var(--field); color: var(--ink); font: 400 13px/1.4 var(--mono); min-width: 14rem; }
+input[type=search]:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* "Use in next question": a real control, not a caption. */
+label.use { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font: 600 13px/1.3 var(--sans); color: var(--ink); text-transform: none; letter-spacing: 0; }
+label.use input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); cursor: pointer; }
+label.use small { font: 400 12px/1.4 var(--mono); color: var(--muted); }
+.bubble.unused { opacity: .55; }
+footer.fine { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); font: 400 12px/1.75 var(--mono); color: var(--muted); max-width: 74ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="titleline">
+      <h1>Audit Desk</h1>
+      <span class="sub">what leaves, and what stays</span>
+      <button class="themebtn" id="theme" type="button">theme</button>
+    </div>
+    <p>Everything runs on this PC: the real Presidio scanner in Docker, and the gateway and paywall built from <code>main</code>. By default the "model" is a stand-in that echoes what it received, so no real model is called and nothing leaves this computer. After <code>use-real-models.cmd</code>, chat goes to OpenRouter's free models, and they receive only the masked text. The paywall runs on TestNet, and no payment is made.</p>
+    <div class="meta">
+      <span><span class="led"></span>gateway 8720</span>
+      <span><span class="led"></span>presidio</span>
+      <span><span class="led"></span>paywall 8080</span>
+      <span>console 8730</span>
+    </div>
+  </header>
+
+  <div class="desk">
+    <nav class="rail" aria-label="Tasks">
+      <button type="button" class="ghost" data-go="t1" aria-current="true"><span class="idx">01</span>Scan and mask</button>
+      <button type="button" class="ghost" data-go="t2"><span class="idx">02</span>Private chat</button>
+      <button type="button" class="ghost" data-go="t5"><span class="idx">03</span>Ask across files</button>
+      <button type="button" class="ghost" data-go="t3"><span class="idx">04</span>Payment</button>
+      <button type="button" class="ghost" data-go="t4"><span class="idx">05</span>Ledger</button>
+    </nav>
+
+    <div>
+      <section class="sheet" id="t1">
+        <h2>Scan and mask</h2>
+        <p class="deck">Scan reports what it found and leaves your text alone. Mask replaces each value and hands back the key to put them all back.</p>
+        <div class="block">
+          <label class="blabel" for="text">Text to examine</label>
+          <textarea id="text" spellcheck="false">Patient Rahul Verma (MRN 4471902) emailed dr.emily.carter@clinic-example.org and called 415-555-0199 about his insulin. Card 4111 1111 1111 1111.</textarea>
+          <label class="drop">
+            <span class="plus">+</span>
+            <span class="lines"><b>Attach a text file or PDF</b><span class="muted" id="file1Info">Read in your browser. A scanned PDF is read by OCR. Nothing is sent until you press a button.</span></span>
+            <input type="file" id="file1" accept=".txt,.md,.csv,.tsv,.json,.log,.xml,.html,.yml,.yaml,.pdf,text/*,application/pdf">
+          </label>
+          <div class="row-actions">
+            <button id="mask">Mask ($0.01)</button>
+            <button class="ghost" id="scan">Scan ($0.01)</button>
+            <span class="cost">x402 on XRPL TestNet</span>
+          </div>
+        </div>
+        <div id="pmOut"></div>
+      </section>
+
+      <section class="sheet" id="t2" hidden>
+        <h2>Private chat</h2>
+        <p class="deck">An OpenAI-compatible endpoint that masks the conversation on the way out and restores your real values on the way back.</p>
+        <div class="block">
+          <span class="blabel">From data folder</span>
+          <div id="folderBox"></div>
+          <span class="blabel">Attached data</span>
+          <div id="dataList"></div>
+          <label class="drop">
+            <span class="plus">+</span>
+            <span class="lines"><b>Attach a text file or PDF as data</b><span class="muted" id="file2Info">Kept on this page (in memory only, never saved) and sent with every question until you remove it. A scanned PDF is read by OCR.</span></span>
+            <input type="file" id="file2" accept=".txt,.md,.csv,.tsv,.json,.log,.xml,.html,.yml,.yaml,.pdf,text/*,application/pdf">
+          </label>
+          <label class="blabel" for="msg">Your question</label>
+          <textarea id="msg" spellcheck="false">Please remind Rahul Verma (MRN 4471902) that his insulin refill is ready, and email him at rahul.verma@example.net.</textarea>
+          <label class="blabel" for="model">Model</label>
+          <select id="model"><option value="">loading the models…</option></select>
+          <span class="muted" id="modelInfo">Every Send uses the model picked here until you pick another.</span>
+          <label class="paybox"><input type="checkbox" id="payMode"> Pay with Crossmark (x402, RLUSD on XRPL TestNet)</label>
+          <span class="muted" id="payInfo">Off: Send goes straight to the gateway with the test key, and nothing is paid.</span>
+          <div class="row-actions">
+            <button id="send">Send ($0.01)</button>
+            <button class="ghost" id="newConv" type="button">New conversation</button>
+            <button class="ghost" id="tryMedia">Try an image or PDF (refused)</button>
+            <input type="file" id="media" accept="image/*,.pdf,application/pdf" hidden>
+          </div>
+          <span class="muted" id="sizeInfo"></span>
+        </div>
+        <div id="chatOut"></div>
+        <div id="turnsOut"></div>
+      </section>
+
+      <section class="sheet" id="t5" hidden>
+        <h2>Ask across files</h2>
+        <p class="deck">Questions that need several CSV files at once. The analyst on this PC reads the files and finds how they relate; a model writes one query from the column names only; the answer is computed here.</p>
+        <div class="block">
+          <span class="blabel">1. Folder</span>
+          <div id="xFolder"></div>
+          <span class="blabel">2. Question</span>
+          <textarea id="xaskQ" spellcheck="false">For each payer, how many billed claims were paid, and how much was paid in total?</textarea>
+          <div class="xmodels">
+            <label class="blabel">Writes the query (sees column names only)<select id="xaskModel"><option value="">loading the models…</option></select></label>
+            <label class="blabel">Words the answer (sees the result rows)<select id="xaskAnswerModel"><option value="">no worded answer: table only</option></select></label>
+          </div>
+          <details><summary class="muted">Or type the query yourself (no model writes it)</summary>
+            <textarea id="xaskSql" spellcheck="false" placeholder='SELECT "Payer", count(*) FROM collections GROUP BY 1'></textarea>
+          </details>
+          <div class="row-actions">
+            <button id="xaskGo" type="button">Ask</button>
+            <button class="ghost" id="xaskRel" type="button">Show how the files relate</button>
+          </div>
+          <span class="muted">Needs test-console\start-analyst.cmd running. A local model for the answer keeps the result rows on this PC.</span>
+        </div>
+        <div id="xaskOut"></div>
+      </section>
+
+      <section class="sheet" id="t3" hidden>
+        <h2>Payment</h2>
+        <p class="deck">Calls each paid route without paying, so you can read the quote the paywall returns. Expect 402, with the price and its invoice.</p>
+        <div class="block">
+          <span class="blabel">Call a route unpaid</span>
+          <div class="row-actions">
+            <button class="ghost" data-route="scan">Try scan</button>
+            <button class="ghost" data-route="mask">Try mask</button>
+            <button class="ghost" data-route="chat">Try chat</button>
+          </div>
+        </div>
+        <div id="payOut"></div>
+      </section>
+
+      <section class="sheet" id="t4" hidden>
+        <h2>Decision ledger</h2>
+        <p class="deck">The gateway writes one line per request, recording what kind of data was found and which model answered. It must hold no text, no placeholders and no map.</p>
+        <div class="block">
+          <div class="row-actions"><button class="ghost" id="ledger">Show the last entries</button></div>
+        </div>
+        <div id="ledgerOut"></div>
+      </section>
+
+      <footer class="fine">If Presidio cannot be reached, scan, mask and chat all answer 503 and /healthz reports 503. Text that has not been scanned is never forwarded anywhere &mdash; that is the one rule the rest of the design is built around.</footer>
+    </div>
+  </div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); for (const k of kids) if (k != null) e.append(k); return e; };
+const label = (t) => el("div", { className: "label", textContent: t });
+const pre = (t) => el("pre", { textContent: typeof t === "string" ? t : JSON.stringify(t, null, 2) });
+const pill = (t, cls = "") => el("span", { className: "pill " + cls, textContent: t });
+// Private chat answers keep the placeholders (<PERSON_1>, <BANK_ACCOUNT_1>, ...) the model was given: the gateway is asked
+// not to put the real values back (chainaim_restore: false). Set to false to show answers with the real values restored.
+const KEEP_PLACEHOLDERS = true;
+const withPlaceholders = (text) => {
+  const box = el("div", { className: "box" });
+  for (const part of String(text).split(/(<[A-Z_]+_\d+>|\[CARD REMOVED\])/)) {
+    if (!part) continue;
+    if (part === "[CARD REMOVED]") box.append(el("span", { className: "gone", textContent: part }));
+    else if (/^<[A-Z_]+_\d+>$/.test(part)) box.append(el("span", { className: "ph", textContent: part }));
+    else box.append(part);
+  }
+  return box;
+};
+// The worksheet's building blocks.
+const block = (...kids) => el("div", { className: "block" }, ...kids);
+const cell = (term, value, cls = "", sub) => el("div", { className: "cell" },
+  el("dt", { textContent: term }), el("dd", { className: cls }, String(value), sub ? el("small", { textContent: sub }) : null));
+const verdict = (...cells) => el("dl", { className: "verdict" }, ...cells);
+const colhead = (title, note) => el("div", { className: "colhead" }, el("b", { textContent: title }), note ? el("em", { textContent: note }) : null);
+const col = (...kids) => el("div", { className: "col" }, ...kids);
+const empty = (t) => el("p", { className: "empty", textContent: t });
+
+async function call(url, body) {
+  const res = await fetch(url, body === undefined ? {} : { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  return res.json();
+}
+const SERVER = "http://127.0.0.1:8730";
+async function busy(button, fn) {
+  button.disabled = true;
+  try { await fn(); }
+  catch (e) { alert(/failed to fetch|failed to parse url|networkerror/i.test(e.message) ? `Can't reach the test console server. Open ${SERVER} in your browser, and check that the "ChainAim test console" window is still open (start.cmd).` : e.message); }
+  finally { button.disabled = false; }
+}
+// Opened straight from disk (or from an editor preview), the buttons have no server to talk to.
+if (location.protocol !== "http:") document.querySelector(".wrap").prepend(el("p", { className: "flag" }, "This page was opened from a file, so its buttons can't reach the server. Open ", el("a", { href: SERVER, textContent: SERVER }), " instead (start.cmd must be running)."));
+
+// Theme: follows the OS until you press the button, then sticks for this tab.
+$("theme").onclick = () => {
+  const root = document.documentElement;
+  const dark = root.getAttribute("data-theme") === "dark" ||
+    (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  root.setAttribute("data-theme", dark ? "light" : "dark");
+};
+
+// The rail shows one task at a time.
+const TASKS = ["t1", "t2", "t3", "t4", "t5"];
+for (const b of document.querySelectorAll("nav.rail button")) {
+  b.onclick = () => {
+    for (const other of document.querySelectorAll("nav.rail button")) other.setAttribute("aria-current", String(other === b));
+    for (const id of TASKS) $(id).hidden = id !== b.dataset.go;
+  };
+}
+
+const classPill = (dc) => pill("data class: " + dc, dc === "PHI" ? "phi" : dc === "none" ? "good" : "");
+const classCell = (dc) => cell("Data class", dc, dc === "PHI" ? "phi" : dc === "none" ? "clear" : "",
+  dc === "PHI" ? "no-collection providers only" : dc === "none" ? "nothing personal found" : "standard policy");
+
+// Colour by kind of data: blue people, amber contact details, red health, magenta cards, purple IDs.
+const typeColor = (t) => /^PERSON$/.test(t) ? "var(--e-person)" : /EMAIL|PHONE|URL|IP_ADDRESS|LOCATION|ADDRESS/.test(t) ? "var(--e-contact)" : /MEDICAL|HEALTH/.test(t) ? "var(--e-health)" : /CARD|IBAN|BANK|CRYPTO/.test(t) ? "var(--e-card)" : /AADHAAR|PAN|SSN|PASSPORT|LICENSE|ID/.test(t) ? "var(--e-id)" : "var(--e-other)";
+const mark = (text, type) => { const m = el("mark", { className: "ent", title: type, textContent: text }); m.style.setProperty("--c", typeColor(type)); return m; };
+function highlighted(text, spans) {
+  const box = el("div", { className: "doc" });
+  let at = 0;
+  for (const s of [...spans].sort((a, b) => a.start - b.start)) {
+    if (s.start < at || s.end > text.length || s.end <= s.start) continue;
+    box.append(text.slice(at, s.start), mark(text.slice(s.start, s.end), s.type));
+    at = s.end;
+  }
+  box.append(text.slice(at));
+  return box;
+}
+const luhn = (digits) => { let sum = 0; [...digits].reverse().forEach((c, i) => { let n = +c; if (i % 2) { n *= 2; if (n > 9) n -= 9; } sum += n; }); return digits.length >= 13 && sum % 10 === 0; };
+function legend(counts) {
+  const row = el("div", { className: "legend" });
+  for (const [type, n] of Object.entries(counts ?? {})) { const dot = el("i"); dot.style.setProperty("--c", typeColor(type)); row.append(el("span", { className: "pill" }, dot, `${type} ×${n}`)); }
+  return row;
+}
+const countOf = (counts, re) => Object.entries(counts ?? {}).reduce((n, [k, v]) => n + (re.test(k) ? v : 0), 0);
+
+// A small, safe Markdown renderer: everything is built as text nodes, never as HTML, because model output is untrusted.
+const INLINE = /(\*\*[^*\n]+\*\*|`[^`\n]+`|\*[^*\s][^*\n]*\*)/;
+function inline(text, parent) {
+  for (const part of text.split(INLINE)) {
+    if (!part) continue;
+    if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) parent.append(el("strong", { textContent: part.slice(2, -2) }));
+    else if (part.length > 2 && part.startsWith("`") && part.endsWith("`")) parent.append(el("code", { textContent: part.slice(1, -1) }));
+    else if (part.length > 2 && part.startsWith("*") && part.endsWith("*")) parent.append(el("em", { textContent: part.slice(1, -1) }));
+    else parent.append(part);
+  }
+  return parent;
+}
+const LIST = /^\s*([-*+]|\d+[.)])\s+/;
+function markdown(src) {
+  const root = el("div", { className: "md" });
+  const lines = String(src).replace(/\r\n/g, "\n").split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (/^```/.test(line)) { const code = []; i++; while (i < lines.length && !/^```/.test(lines[i])) code.push(lines[i++]); i++; root.append(el("pre", {}, el("code", { textContent: code.join("\n") }))); continue; }
+    if (!line.trim()) { i++; continue; }
+    const h = line.match(/^(#{1,3})\s+(.*)$/);
+    if (h) { root.append(inline(h[2], el("h" + h[1].length))); i++; continue; }
+    if (LIST.test(line)) { const list = el(/^\s*\d/.test(line) ? "ol" : "ul"); while (i < lines.length && LIST.test(lines[i])) list.append(inline(lines[i++].replace(LIST, ""), el("li"))); root.append(list); continue; }
+    if (/^>\s?/.test(line)) { const q = []; while (i < lines.length && /^>\s?/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, "")); root.append(inline(q.join(" "), el("blockquote"))); continue; }
+    const para = [];
+    while (i < lines.length && lines[i].trim() && !/^(```|#{1,3}\s|>)/.test(lines[i]) && !LIST.test(lines[i])) para.push(lines[i++]);
+    if (!para.length) para.push(lines[i++]);
+    const p = el("p"); para.forEach((t, k) => { if (k) p.append(el("br")); inline(t, p); }); root.append(p);
+  }
+  return root;
+}
+const bubble = (who, name, body) => el("div", { className: "bubble " + who }, el("div", { className: "who", textContent: name }), body);
+
+// Files are read in the browser and their text is put in the box; nothing is sent until a button is clicked.
+// The gateway takes text only. A PDF's text is extracted here (pdf.js, loaded from cdnjs the first time you pick a PDF);
+// the gateway never receives the PDF itself, and the button in section 2 shows it refusing one.
+// A scanned page (an image with no text in it) is read by OCR (tesseract.js), also in this browser: the PDF and its page
+// images never leave this PC, only the text that lands in the box, and only when a button is clicked.
+const TEXT_FILE = /\.(txt|md|csv|tsv|json|log|xml|html?|ya?ml)$/i;
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+const PDF_SETTINGS = {
+  ocr: true,        // false turns OCR off: a scanned PDF is refused as before
+  ocrLang: "eng",   // tesseract language codes joined by "+", e.g. "eng+hin" or "eng+tam" for Indian documents
+  ocrScale: 2,      // scale a page is drawn at for OCR: higher reads small print better, but is slower
+  ocrMaxPages: 10,  // most pages OCR reads per PDF, so a long scan can't freeze the tab
+  ocrMinChars: 20,  // a page with fewer characters of text than this (spaces not counted) counts as scanned
+};
+// cdnjs has tesseract.js but not its WebAssembly core, so all of it comes from jsDelivr, pinned.
+const TESSERACT = "https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/";
+const TESSERACT_CORE = "https://cdn.jsdelivr.net/npm/tesseract.js-core@7.0.0/"; // a folder: the worker picks the build this browser supports
+const TESSDATA = "https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@4.1.0/"; // one folder with every language (uncompressed), so "eng+hin" works
+let pdfjsReady;
+function loadPdfjs() {
+  pdfjsReady ??= new Promise((ok, no) => {
+    const s = el("script", { src: PDFJS + "pdf.min.js" });
+    s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; ok(window.pdfjsLib); };
+    s.onerror = () => { pdfjsReady = undefined; no(new Error("could not load the PDF reader (it needs an internet connection the first time).")); };
+    document.head.append(s);
+  });
+  return pdfjsReady;
+}
+let tesseractReady;
+function loadTesseract() {
+  tesseractReady ??= new Promise((ok, no) => {
+    const s = el("script", { src: TESSERACT + "tesseract.min.js" });
+    s.onload = () => ok(window.Tesseract);
+    s.onerror = () => { tesseractReady = undefined; no(new Error("could not load the OCR reader (it needs an internet connection the first time).")); };
+    document.head.append(s);
+  });
+  return tesseractReady;
+}
+// One OCR worker per PDF, made only when a page needs it. Language data is downloaded once, then cached by the browser.
+async function ocrWorker(progress) {
+  const T = await loadTesseract();
+  const logger = (m) => { if (m.status && typeof m.progress === "number") progress(`${m.status} ${Math.round(m.progress * 100)}%`); };
+  try {
+    return await T.createWorker(PDF_SETTINGS.ocrLang, T.OEM.LSTM_ONLY, { workerPath: TESSERACT + "worker.min.js", corePath: TESSERACT_CORE, langPath: TESSDATA, gzip: false, logger });
+  } catch (e) {
+    throw new Error(`could not start OCR for "${PDF_SETTINGS.ocrLang}" (${e?.message ?? e}). It needs an internet connection the first time.`);
+  }
+}
+async function ocrPage(worker, page) {
+  const viewport = page.getViewport({ scale: PDF_SETTINGS.ocrScale });
+  const canvas = el("canvas", { width: Math.ceil(viewport.width), height: Math.ceil(viewport.height) });
+  try {
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    return (await worker.recognize(canvas)).data.text.replace(/[ \t]+\n/g, "\n").trim();
+  } finally { canvas.width = canvas.height = 0; } // free the bitmap now, not at garbage collection
+}
+const realChars = (s) => s.replace(/\s/g, "").length;
+async function pdfText(file, progress = () => {}) {
+  const lib = await loadPdfjs();
+  const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const pages = [], ocred = [], skipped = [];
+  let worker, tried = 0, at = ""; // at: the page OCR is on, read by the progress callback
+  try {
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const page = await pdf.getPage(n);
+    const items = (await page.getTextContent()).items.filter((i) => typeof i.str === "string" && i.str !== "");
+    const rows = new Map(); // one row per baseline, read left to right, top to bottom
+    for (const it of items) { const y = Math.round(it.transform[5]); if (!rows.has(y)) rows.set(y, []); rows.get(y).push(it); }
+    const ys = [...rows.keys()].sort((a, b) => b - a);
+    const gaps = ys.slice(1).map((y, i) => ys[i] - y);
+    const line = Math.min(...gaps, Infinity);
+    const out = [];
+    ys.forEach((y, i) => {
+      if (i && Number.isFinite(line) && ys[i - 1] - y > line * 1.6) out.push(""); // a blank line where the page had one
+      out.push(rows.get(y).sort((a, b) => a.transform[4] - b.transform[4]).map((t) => t.str).join(" ").trim());
+    });
+    let text = out.join("\n");
+    // Per page, so a document with both typed and scanned pages works: only the scanned ones are read by OCR.
+    if (PDF_SETTINGS.ocr && realChars(text) < PDF_SETTINGS.ocrMinChars) {
+      if (tried >= PDF_SETTINGS.ocrMaxPages) skipped.push(n);
+      else {
+        tried++;
+        at = `OCR page ${n} of ${pdf.numPages}…`;
+        progress(at);
+        worker ??= await ocrWorker((s) => progress(`${at} ${s}`));
+        const read = await ocrPage(worker, page);
+        if (realChars(read) > realChars(text)) { text = read; ocred.push(n); }
+      }
+    }
+    page.cleanup();
+    pages.push(text);
+  }
+  } finally { if (worker) await worker.terminate(); }
+  return { text: pages.join("\n\n"), pages: pdf.numPages, ocred, skipped };
+}
+// sink(name, text), when given, receives the file's text instead of a text box (Private chat's attached data).
+function attach(inputId, areaId, infoId, limit, below, sink) {
+  $(inputId).onchange = async (ev) => {
+    const file = ev.target.files[0]; ev.target.value = "";
+    const info = $(infoId);
+    if (!file) return;
+    const refuse = (why) => { info.className = "err"; info.textContent = `${file.name}: ${why}`; };
+    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+    if (!isPdf && !file.type.startsWith("text/") && !TEXT_FILE.test(file.name)) return refuse("only text files and PDFs can be loaded. The gateway refuses images.");
+    let text, from = "", review = "";
+    if (isPdf) {
+      info.className = "muted"; info.textContent = `${file.name}: reading the PDF in your browser…`;
+      const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+      try {
+        const r = await pdfText(file, (msg) => { info.textContent = `${file.name}: ${msg}`; });
+        text = r.text;
+        from = `, extracted from ${plural(r.pages, "page")} in your browser` + (r.ocred.length ? ` (${plural(r.ocred.length, "page")} read by OCR)` : "");
+        if (r.skipped.length) review += `${plural(r.skipped.length, "scanned page")} not read (OCR stops after ${PDF_SETTINGS.ocrMaxPages}). `;
+        if (r.ocred.length) review += "OCR can misread, so check the text in the box before you click a button. ";
+      }
+      catch (e) { return refuse(e.message || "could not read this PDF."); }
+      if (!text.trim()) return refuse(PDF_SETTINGS.ocr ? "no text found, and OCR could not read any either. The gateway cannot read images." : "no text found. It may be a scan (an image), which the gateway cannot read.");
+    } else {
+      text = await file.text();
+      if (text.includes("\u0000")) return refuse("this looks like a binary file, not text.");
+    }
+    if (sink) {
+      sink(file.name, text);
+      info.className = "muted";
+      info.textContent = `${file.name}: ${text.length.toLocaleString()} characters attached as data${from}. ` + review + "It goes with every question until you remove it.";
+      return;
+    }
+    const area = $(areaId);
+    area.value = below ? area.value.replace(/\s+$/, "") + "\n\n" + text : text;
+    const over = text.length > limit;
+    info.className = over ? "err" : "muted";
+    info.textContent = `${file.name}: ${text.length.toLocaleString()} characters ${below ? "added below your question" : "loaded"}${from}. ` + review +
+      (over ? `Over the limit of ${limit.toLocaleString()}, so the gateway will refuse it.` : "Nothing is sent until you click a button.");
+  };
+}
+attach("file1", "text", "file1Info", 20000, false);
+attach("file2", null, "file2Info", 48000, true, addData);
+
+// Model pick list. The list is whatever the gateway serves (GET /v1/models, so it follows the catalog); the default is
+// the console server's --default-model. Your pick is remembered in this browser and sent as "model" with every chat,
+// so the gateway uses that model alone until you pick another. chainaim/auto lets the gateway rank and fall back.
+const AUTO = "chainaim/auto";
+const MODEL_KEY = "chainaim.console.model";
+const savedModel = { get() { try { return localStorage.getItem(MODEL_KEY); } catch { return null; } }, set(v) { try { localStorage.setItem(MODEL_KEY, v); } catch { /* storage blocked: the pick lasts until reload */ } } };
+let pickedModel; // undefined until the list loads: chat then sends no model and the gateway ranks
+(async () => {
+  const sel = $("model"), info = $("modelInfo");
+  let list = [], def = AUTO;
+  try {
+    const r = await call("/gateway/models");
+    list = r.models ?? []; def = r.defaultModel || AUTO;
+    modelLimits = r.limits ?? {}; maxOutputTokens = r.maxOutputTokens ?? null;
+  } catch { /* handled below */ }
+  if (!list.length) {
+    sel.replaceChildren(el("option", { value: "", textContent: "no models listed" }));
+    info.className = "err";
+    info.textContent = "The gateway listed no models, so chat sends none and the gateway picks. Check that the gateway is up (use-ollama.cmd), then reload.";
+    return;
+  }
+  const name = (id) => (id === AUTO ? "Auto: the gateway ranks the models and falls back" : id) + (id === def ? "  (default)" : "");
+  sel.replaceChildren(...list.map((id) => el("option", { value: id, textContent: name(id) })));
+  const saved = savedModel.get();
+  sel.value = list.includes(saved) ? saved : list.includes(def) ? def : list.includes(AUTO) ? AUTO : list[0];
+  const show = () => {
+    pickedModel = sel.value;
+    info.className = "muted";
+    info.textContent = (pickedModel === AUTO ? "Every Send lets the gateway pick, with fallbacks." : `Every Send uses ${pickedModel} alone (no fallback) until you pick another.`) +
+      (list.includes(def) ? "" : ` The console default ${def} is not registered in the catalog.`) + " Your pick is remembered in this browser.";
+    updateSize();
+  };
+  show();
+  sel.onchange = () => { savedModel.set(sel.value); show(); };
+})();
+
+// Private chat context, kept in this page's memory only (never in browser storage, since it can hold statements):
+// the attached data, sent with every question, and the earlier answers, of which the ticked ones go with the next
+// question as assistant turns. Each Send is one request; the model keeps nothing between requests.
+const dataFiles = [];  // { name, text }
+const turns = [];      // { q, a, model, use }
+let modelLimits = {};  // model id -> context length, from the gateway's model list
+let maxOutputTokens = null; // the gateway's --max-output-tokens, from config/generated/summary.json
+const GATEWAY_CHARS = 48000; // MAX_CHAT_CHARS in services/gateway/src/chat.ts
+/** The conversation for one Send: data in the first user turn, ticked earlier answers as assistant turns, the new question last. */
+function buildMessages(question) {
+  const data = dataFiles.map((f) => `Data (${f.name}):\n${f.text}`).join("\n\n");
+  const ask = (q, first) => (!data ? q : first ? `${data}\n\nQuestion: ${q}` : `Question: ${q}`);
+  const used = turns.filter((t) => t.use);
+  const msgs = [];
+  used.forEach((t, i) => msgs.push({ role: "user", content: ask(t.q, i === 0) }, { role: "assistant", content: t.a }));
+  msgs.push({ role: "user", content: ask(question, used.length === 0) });
+  return msgs;
+}
+/** Characters the picked model can take: the gateway's limit, or less when its context minus the output budget is smaller (characters / 4 = tokens, the gateway's estimate). */
+function promptRoom() {
+  const ctx = modelLimits[pickedModel];
+  return ctx && maxOutputTokens ? Math.max(0, Math.min(GATEWAY_CHARS, (ctx - maxOutputTokens) * 4)) : GATEWAY_CHARS;
+}
+function updateSize() {
+  const info = $("sizeInfo");
+  const chars = buildMessages($("msg").value.trim()).reduce((n, m) => n + m.content.length, 0);
+  const room = promptRoom();
+  const used = turns.filter((t) => t.use).length;
+  const dataChars = dataFiles.reduce((n, f) => n + f.text.length, 0);
+  info.className = chars > room ? "err" : "muted";
+  info.textContent = `Next send: ${chars.toLocaleString()} characters (data ${dataChars.toLocaleString()}, ${used} earlier answer${used === 1 ? "" : "s"}) of about ${room.toLocaleString()} for ${pickedModel ?? "the gateway"}.` +
+    (chars > room ? " Too big for this model: remove data, untick earlier answers, or pick a model with more room." : "");
+}
+function renderData() {
+  const rows = dataFiles.map((f, i) => {
+    const remove = el("button", { className: "ghost", type: "button", textContent: "Remove" });
+    remove.onclick = () => { dataFiles.splice(i, 1); renderData(); updateSize(); };
+    if (f.origin === "whole") { remove.disabled = true; remove.title = "Whole folder mode: switch From data folder to Pick files to choose files."; }
+    const from = f.origin === "whole" ? " · whole folder" : f.origin === "folder" ? " · from folder" : "";
+    return el("div", { className: "row-actions" }, pill(`${f.name} · ${f.text.length.toLocaleString()} characters${from}`), remove);
+  });
+  $("dataList").replaceChildren(...(rows.length ? rows : [empty("No data attached: questions are sent on their own.")]));
+}
+function renderTurns() {
+  if (!turns.length) return $("turnsOut").replaceChildren();
+  const items = turns.map((t, i) => {
+    const box = el("input", { type: "checkbox", checked: t.use });
+    box.onchange = () => { t.use = box.checked; updateSize(); };
+    const card = el("div", { className: "bubble ai" + (t.use ? "" : " unused") },
+      el("label", { className: "use" }, box, `Use in next question`, el("small", { textContent: `${i + 1}. ${t.q.slice(0, 100)}${t.q.length > 100 ? "…" : ""} · ${t.model}` })),
+      viewLinks(t.views), markdown(t.a));
+    box.addEventListener("change", () => card.classList.toggle("unused", !box.checked));
+    return card;
+  });
+  $("turnsOut").replaceChildren(block(el("span", { className: "blabel", textContent: "Answers in this conversation — ticked ones go with the next question" }), el("div", { className: "chat" }, ...items)));
+}
+/** Attached data: origin "upload" (+ Attach), "folder" (Pick files) or "whole" (Whole folder). A file loaded again from the same path replaces the old copy. */
+function addData(name, text, origin = "upload", path = "") {
+  if (path) for (let i = dataFiles.length - 1; i >= 0; i--) if (dataFiles[i].path === path) dataFiles.splice(i, 1);
+  dataFiles.push({ name, text, origin, path }); renderData(); updateSize();
+}
+const nextChars = () => buildMessages($("msg").value.trim()).reduce((n, m) => n + m.content.length, 0);
+
+// ---- From data folder ----------------------------------------------------------------------------
+// The console server lists and returns files from the data folders allowed in config/data-sources.json (allowedRoots).
+// This page only NAMES a folder or file; the server refuses anything outside those folders. Loaded files become attached
+// data exactly like uploads: page memory only (never browser storage), masked by the gateway before any model sees them.
+// "Pick files" loads the ticked files once; "Whole folder" sends every listed file with each question, re-read at each Send.
+// Only the folder path is remembered in this browser, never file contents.
+const FOLDER_KEY = "chainaim.console.dataFolder";
+const savedFolder = { get() { try { return localStorage.getItem(FOLDER_KEY); } catch { return null; } }, set(v) { try { localStorage.setItem(FOLDER_KEY, v); } catch { /* blocked: the folder is forgotten on reload */ } } };
+const folder = { config: null, path: "", files: [], truncated: false, picked: new Set(), mode: "whole", filter: "", browse: null, error: "", status: "", statusErr: false };
+const enc = encodeURIComponent;
+async function getJson(url) {
+  const r = await fetch(url);
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+  return body;
+}
+const kb = (n) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+const shownFiles = () => folder.files.filter((f) => f.name.toLowerCase().includes(folder.filter.toLowerCase()));
+const say = (text, isErr = false) => { folder.status = text; folder.statusErr = isErr; renderFolderStatus(); };
+async function loadFolderConfig() {
+  try { folder.config = await getJson("/data/config"); } catch (e) { folder.config = { enabled: false, error: `Can't read the data folder settings: ${e.message}` }; }
+  if (!folder.config.enabled) return renderFolder();
+  folder.mode = folder.config.defaultMode === "pick" ? "pick" : "whole"; // defaultMode in config/data-sources.json
+  const saved = savedFolder.get();
+  await openFolder(saved || folder.config.defaultFolder, Boolean(saved));
+}
+async function openFolder(path, fallBack = false) {
+  folder.error = ""; folder.status = ""; folder.statusErr = false;
+  try {
+    const r = await getJson(`/data/files?path=${enc(path)}`);
+    if (r.path !== folder.path) folder.picked = new Set();
+    folder.path = r.path; folder.files = r.files; folder.truncated = r.truncated;
+    savedFolder.set(r.path);
+  } catch (e) {
+    if (fallBack && path !== folder.config.defaultFolder) return openFolder(folder.config.defaultFolder);
+    folder.path = path; folder.files = []; folder.picked = new Set();
+    folder.error = `${path}: ${e.message}` + (path === folder.config.defaultFolder && !folder.config.defaultExists ? ". Create this folder, or pick another with Change folder." : "");
+  }
+  if (folder.mode === "whole") await useWholeFolder(); else renderFolder();
+}
+async function browse(path) {
+  try { folder.browse = await getJson(`/data/folders?path=${enc(path ?? "")}`); folder.error = ""; }
+  catch (e) { folder.error = e.message; }
+  renderFolder();
+}
+async function readFolderFile(f, progress = () => {}) {
+  const r = await fetch(`/data/file?path=${enc(f.path)}`);
+  if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(`${f.name}: ${b.error || "HTTP " + r.status}`); }
+  if (f.ext === ".pdf") {
+    const res = await pdfText(new File([await r.arrayBuffer()], f.name, { type: "application/pdf" }), progress);
+    if (!res.text.trim()) throw new Error(`${f.name}: no text found in this PDF.`);
+    return res.text;
+  }
+  const text = await r.text();
+  if (text.includes("\u0000")) throw new Error(`${f.name}: this looks like a binary file, not text.`);
+  return text;
+}
+/** Reads folder files into the attached data (Whole folder replaces its previous set). Refuses, and restores the previous data, when the next send would not fit the picked model. */
+async function attachFolderFiles(list, origin) {
+  const loaded = [];
+  for (const f of list) {
+    say(`Reading ${f.name}…`);
+    loaded.push({ name: f.name, text: await readFolderFile(f, (m) => say(`${f.name}: ${m}`)), origin, path: f.path });
+  }
+  const before = dataFiles.slice();
+  const keep = dataFiles.filter((d) => (origin === "whole" ? d.origin !== "whole" : true) && !loaded.some((l) => l.path === d.path));
+  dataFiles.splice(0, dataFiles.length, ...keep, ...loaded);
+  const chars = nextChars(), room = promptRoom();
+  if (chars > room) {
+    dataFiles.splice(0, dataFiles.length, ...before);
+    renderData(); updateSize();
+    throw new Error(`Not loaded: the next send would be ${chars.toLocaleString()} characters, about ${(chars - room).toLocaleString()} over the ${room.toLocaleString()} that ${pickedModel ?? "the model"} can take. Use fewer files, untick earlier answers, or pick a model with more room (qwen2.5-3b and the 1.5b take up to 48,000).`);
+  }
+  renderData(); updateSize();
+  return loaded;
+}
+async function useWholeFolder() {
+  const usable = folder.files.filter((f) => !f.tooBig);
+  renderFolder();
+  try {
+    const loaded = await attachFolderFiles(usable, "whole");
+    say(`${loaded.length} file${loaded.length === 1 ? "" : "s"} from this folder go with every question (re-read at each Send).` + (usable.length < folder.files.length ? ` ${folder.files.length - usable.length} over the size limit left out.` : ""));
+  } catch (e) { say(e.message, true); }
+}
+async function refreshWholeFolder() {
+  const r = await getJson(`/data/files?path=${enc(folder.path)}`);
+  folder.files = r.files; folder.truncated = r.truncated;
+  renderFolder();
+  await attachFolderFiles(folder.files.filter((f) => !f.tooBig), "whole");
+}
+async function setMode(mode) {
+  folder.mode = mode; folder.status = ""; folder.statusErr = false;
+  if (mode === "whole") return useWholeFolder();
+  for (let i = dataFiles.length - 1; i >= 0; i--) if (dataFiles[i].origin === "whole") dataFiles.splice(i, 1);
+  renderData(); updateSize(); renderFolder();
+}
+function renderFolderStatus() { const s = $("folderStatus"); if (s) { s.className = folder.statusErr ? "err" : "muted"; s.textContent = folder.status; } }
+function renderPickTotal() {
+  const s = $("pickTotal"); if (!s) return;
+  if (folder.mode !== "pick") { s.className = "muted"; s.textContent = `${folder.files.length} file${folder.files.length === 1 ? "" : "s"} in this folder${folder.truncated ? " (list cut at maxFiles)" : ""}.`; return; }
+  const sel = folder.files.filter((f) => folder.picked.has(f.name));
+  const bytes = sel.reduce((n, f) => n + f.size, 0);
+  const room = promptRoom();
+  const pdf = sel.some((f) => f.ext === ".pdf");
+  s.className = bytes > room ? "err" : "muted";
+  s.textContent = `Selected ${sel.length} of ${folder.files.length}: about ${bytes.toLocaleString()} characters${pdf ? " (a PDF's text is measured once it is read)" : ""}. ${pickedModel ?? "The model"} takes about ${room.toLocaleString()} per question, including your question and earlier answers.`;
+}
+function renderFileTable() {
+  const holder = $("folderTable"); if (!holder) return;
+  const pick = folder.mode === "pick";
+  const t = el("table");
+  t.append(el("thead", {}, el("tr", {}, ...[pick ? "Use" : "Sent", "File", "Size", "Modified"].map((h) => el("th", { textContent: h })))));
+  const tb = el("tbody");
+  for (const f of shownFiles()) {
+    const box = el("input", { type: "checkbox", checked: folder.picked.has(f.name), disabled: f.tooBig });
+    box.onchange = () => { if (box.checked) folder.picked.add(f.name); else folder.picked.delete(f.name); renderPickTotal(); };
+    tb.append(el("tr", {},
+      el("td", {}, pick ? box : (f.tooBig ? "no" : "yes")),
+      el("td", { textContent: f.name + (f.tooBig ? "  (over the size limit)" : "") }),
+      el("td", { className: "num", textContent: kb(f.size) }),
+      el("td", { className: "num", textContent: f.modified.slice(0, 16).replace("T", " ") })));
+  }
+  t.append(tb);
+  holder.replaceChildren(el("div", { className: "scroll" }, t), el("span", { className: "muted", id: "pickTotal" }));
+  renderPickTotal();
+}
+function renderFolder() {
+  const box = $("folderBox");
+  const c = folder.config;
+  if (!c) return box.replaceChildren(empty("Reading the data folder settings…"));
+  if (!c.enabled) return box.replaceChildren(el("p", { className: "err", textContent: c.error || "Data folders are off." }));
+  const kids = [];
+  const change = el("button", { className: "ghost", type: "button", textContent: folder.browse ? "Close" : "Change folder…" });
+  change.onclick = () => { if (folder.browse) { folder.browse = null; renderFolder(); } else browse(folder.path); };
+  const refresh = el("button", { className: "ghost", type: "button", textContent: "Refresh" });
+  refresh.onclick = () => openFolder(folder.path);
+  kids.push(el("div", { className: "row-actions" }, pill(folder.path || "(no folder)"), change, refresh));
+  if (folder.browse) {
+    const b = folder.browse, rows = [];
+    if (b.path) {
+      const up = el("button", { className: "ghost", type: "button", textContent: b.parent ? "Up one level" : "Allowed folders" });
+      up.onclick = () => browse(b.parent || "");
+      const use = el("button", { type: "button", textContent: "Use this folder" });
+      use.onclick = () => { folder.browse = null; openFolder(b.path); };
+      rows.push(el("div", { className: "row-actions" }, up, use, el("span", { className: "muted", textContent: b.path })));
+    } else rows.push(el("span", { className: "muted", textContent: "Allowed folders (allowedRoots in config/data-sources.json):" }));
+    const subs = b.folders.map((f) => { const go = el("button", { className: "ghost", type: "button", textContent: "› " + f.name }); go.onclick = () => browse(f.path); return go; });
+    rows.push(subs.length ? el("div", { className: "row-actions" }, ...subs) : empty("No sub-folders here."));
+    kids.push(el("div", { className: "box" }, ...rows));
+  }
+  const modes = el("div", { className: "row-actions" });
+  for (const [value, text] of [["pick", "Pick files"], ["whole", "Whole folder (every file, every question)"]]) {
+    const r = el("input", { type: "radio", name: "folderMode", value, checked: folder.mode === value });
+    r.onchange = () => setMode(value);
+    modes.append(el("label", { className: "muted" }, r, " " + text));
+  }
+  kids.push(modes);
+  if (folder.error) kids.push(el("p", { className: "err", textContent: folder.error }));
+  else if (!folder.files.length) kids.push(empty(`No ${c.extensions.join(", ")} files in this folder.`));
+  else {
+    const filter = el("input", { type: "search", placeholder: "filter by name", value: folder.filter });
+    filter.oninput = () => { folder.filter = filter.value; renderFileTable(); };
+    const controls = el("div", { className: "row-actions" }, filter);
+    if (folder.mode === "pick") {
+      const all = el("button", { className: "ghost", type: "button", textContent: "Select all" });
+      all.onclick = () => { for (const f of shownFiles()) if (!f.tooBig) folder.picked.add(f.name); renderFileTable(); };
+      const none = el("button", { className: "ghost", type: "button", textContent: "None" });
+      none.onclick = () => { folder.picked.clear(); renderFileTable(); };
+      const load = el("button", { type: "button", textContent: "Load selected" });
+      load.onclick = () => busy(load, async () => {
+        const chosen = folder.files.filter((f) => folder.picked.has(f.name));
+        if (!chosen.length) return say("Tick at least one file.", true);
+        try { const loaded = await attachFolderFiles(chosen, "folder"); say(`Loaded ${loaded.length} file${loaded.length === 1 ? "" : "s"} as attached data. They go with every question until you remove them.`); }
+        catch (e) { say(e.message, true); }
+      });
+      controls.append(all, none, load);
+    }
+    kids.push(controls, el("div", { id: "folderTable" }));
+  }
+  kids.push(el("span", { className: "muted", id: "folderStatus" }));
+  box.replaceChildren(...kids);
+  renderFileTable(); renderFolderStatus();
+}
+$("newConv").onclick = () => { turns.length = 0; renderTurns(); $("chatOut").replaceChildren(); updateSize(); };
+$("msg").oninput = updateSize;
+renderData();
+updateSize();
+loadFolderConfig();
+
+$("tryMedia").onclick = () => $("media").click();
+$("media").onchange = (ev) => {
+  const file = ev.target.files[0]; ev.target.value = "";
+  if (!file) return;
+  busy($("tryMedia"), async () => {
+    if (file.size > 2_000_000) return alert("Pick a file under 2 MB.");
+    const url = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(file); });
+    const part = file.type.startsWith("image/") ? { type: "image_url", image_url: { url } } : { type: "file", file: { filename: file.name, file_data: url } };
+    const r = await call("/gateway/chat", { messages: [{ role: "user", content: [{ type: "text", text: $("msg").value }, part] }] });
+    $("chatOut").replaceChildren(
+      block(verdict(
+        cell("Status", r.status, r.status === 400 ? "clear" : "phi", r.status === 400 ? "refused, as designed" : "unexpected"),
+        cell("Sent", file.type.startsWith("image/") ? "image" : "file", "", file.name))),
+      block(el("span", { className: "blabel", textContent: "What the gateway said" }),
+        pre(r.body?.error?.message ?? (r.status === 200 ? "It was accepted." : JSON.stringify(r.body))),
+        el("p", { className: "muted", textContent: "The scanner reads text. An image could carry personal data it cannot check, so the gateway will not forward one." })));
+  });
+};
+
+// The button labels show what the paywall actually quotes for each route (PRICE_SCAN, PRICE_MASK, PRICE_CHAT), so they never go stale.
+// The text in the HTML is only the fallback while the paywall does not answer.
+(async () => {
+  for (const [route, id, verb] of [["scan", "scan", "Scan"], ["mask", "mask", "Mask"], ["chat", "send", "Send"]]) {
+    try { const price = (await call("/paywall/" + route)).accepts?.[0]?.price; if (price !== undefined) $(id).textContent = `${verb} ($${price})`; } catch { /* keep the fallback text */ }
+  }
+})();
+
+$("scan").onclick = () => busy($("scan"), async () => {
+  const text = $("text").value;
+  const r = await call("/gateway/scan", { text });
+  const out = $("pmOut"); out.replaceChildren();
+  if (r.status !== 200) return out.append(block(el("p", { className: "err", textContent: `HTTP ${r.status}: ${r.body?.error?.message ?? ""}` })));
+  const b = r.body;
+  const ents = b.entities ?? [];
+  out.append(block(verdict(
+    classCell(b.dataClass),
+    cell("Entities", ents.length, "", "above the score threshold"),
+    cell("Kinds", Object.keys(b.counts ?? {}).length),
+    cell("Data collection", b.policy?.dataCollection ?? "?", b.policy?.dataCollection === "deny" ? "phi" : "", "scan does not change text"))));
+  out.append(block(el("span", { className: "blabel", textContent: "Preview" }),
+    colhead("What ChainAim found in your text", "hover a highlight for its type"), highlighted(text, ents), legend(b.counts)));
+  const t = el("table"); t.append(el("thead", {}, el("tr", {}, el("th", { textContent: "Type" }), el("th", { textContent: "Text" }), el("th", { textContent: "Score" }))));
+  const tb = el("tbody");
+  for (const e of ents) tb.append(el("tr", {}, el("td", { textContent: e.type }), el("td", { textContent: text.slice(e.start, e.end) }), el("td", { className: "num", textContent: e.score.toFixed(2) })));
+  t.append(tb);
+  out.append(block(el("span", { className: "blabel", textContent: "Entities found" }),
+    ents.length ? el("div", { className: "scroll" }, t) : empty("Nothing personal found in this text.")));
+});
+
+$("mask").onclick = () => busy($("mask"), async () => {
+  const text = $("text").value;
+  const r = await call("/gateway/mask", { text });
+  const out = $("pmOut"); out.replaceChildren();
+  if (r.status !== 200) return out.append(block(el("p", { className: "err", textContent: `HTTP ${r.status}: ${r.body?.error?.message ?? ""}` })));
+  const b = r.body;
+  // Highlight each value that was replaced, wherever it appears in the original.
+  const spans = [];
+  for (const [ph, value] of Object.entries(b.map ?? {})) {
+    const type = ph.replace(/^<|_\d+>$/g, "");
+    for (let at = text.indexOf(value); value && at !== -1; at = text.indexOf(value, at + value.length)) spans.push({ start: at, end: at + value.length, type });
+  }
+  // Removed card numbers are not in the map, so find card-shaped numbers that pass the Luhn check.
+  if (b.cardsRemoved) { let left = b.cardsRemoved; for (const m of text.matchAll(/\b\d(?:[ -]?\d){12,18}\b/g)) if (left && luhn(m[0].replace(/\D/g, ""))) { spans.push({ start: m.index, end: m.index + m[0].length, type: "CREDIT_CARD" }); left--; } }
+  const masked = withPlaceholders(b.maskedText); masked.classList.add("doc");
+  out.append(block(verdict(
+    classCell(b.dataClass),
+    cell("Placeholders", Object.keys(b.map ?? {}).length, "", "restorable by you"),
+    cell("Cards removed", b.cardsRemoved, b.cardsRemoved ? "phi" : "", b.cardsRemoved ? "gone for good" : "none found"),
+    cell("Health terms", countOf(b.counts, /HEALTH/), "", "kept: the model needs them"))));
+  out.append(block(el("span", { className: "blabel", textContent: "Side by side" }),
+    el("div", { className: "row" },
+      col(colhead("Original", "stays on this PC"), highlighted(text, spans)),
+      col(colhead("Masked", "what a model could see"), masked)),
+    legend(b.counts)));
+  const t = el("table"); t.append(el("thead", {}, el("tr", {}, el("th", { textContent: "Placeholder" }), el("th", { textContent: "Real value" }))));
+  const tb = el("tbody");
+  for (const [k, v] of Object.entries(b.map ?? {})) tb.append(el("tr", {}, el("td", {}, el("span", { className: "ph", textContent: k })), el("td", { textContent: v })));
+  t.append(tb);
+  out.append(block(el("span", { className: "blabel", textContent: "Map to restore it" }),
+    el("p", { className: "muted", textContent: "Only the caller gets this. It lives in memory for one request and is never written down." }),
+    Object.keys(b.map ?? {}).length ? el("div", { className: "scroll" }, t) : empty("Empty — nothing needed masking.")));
+  if (b.cardsRemoved) out.append(block(empty("Card numbers are deleted rather than replaced. They are absent from the map and cannot be restored.")));
+});
+
+// "Open page" links. An answer that contains a whole HTML page (a ```html block, or a raw <!DOCTYPE html>...</html>)
+// is stored by the console server in memory and served at /view/<id> under a sandbox policy: its scripts run, but it
+// cannot call this console, the gateway or any other address (connect-src 'none'). The link dies when the console restarts.
+const HTML_FENCE = /```html?[^\n]*\n([\s\S]*?)```/gi;
+const LOOKS_LIKE_PAGE = /<!doctype html|<html[\s>]|<body[\s>]|<canvas[\s>]|<svg[\s>]|<script[\s>]/i;
+function htmlPages(answer) {
+  const text = String(answer);
+  const fenced = [...text.matchAll(HTML_FENCE)].map((m) => m[1].trim()).filter((h) => LOOKS_LIKE_PAGE.test(h));
+  if (fenced.length) return fenced;
+  const raw = text.match(/<!doctype html[\s\S]*?<\/html>|<html[\s>][\s\S]*?<\/html>/i);
+  return raw ? [raw[0]] : [];
+}
+async function publishPages(answer) {
+  const out = [];
+  for (const html of htmlPages(answer)) {
+    try {
+      const r = await call("/view", { html });
+      out.push(r.url ? { url: new URL(r.url, location.origin).href, minutes: r.expiresInMin } : { error: `Could not make a link: ${r.error ?? "no reason given"}` });
+    } catch (e) { out.push({ error: `Could not make a link: ${e.message}` }); }
+  }
+  return out;
+}
+function viewLinks(views) {
+  if (!views?.length) return null;
+  const minutes = views.find((v) => v.minutes)?.minutes;
+  return el("div", { className: "row-actions" },
+    ...views.map((v, i) => v.url
+      ? el("a", { href: v.url, target: "_blank", rel: "noopener noreferrer", className: "pill good", textContent: `Open page${views.length > 1 ? " " + (i + 1) : ""} in a new tab \u2197` })
+      : el("span", { className: "err", textContent: v.error })),
+    el("span", { className: "muted", textContent: `Runs sandboxed (no network calls). Kept in the console's memory${minutes ? ` for ${minutes} min` : ""} or until it restarts.` }));
+}
+
+/* ---------- Paid chat: "Pay with Crossmark" ---------- */
+// The web page's payment bundle (services/web, payAndChat), served by this console at /wallet.js and loaded only when the
+// box is ticked, so the unpaid console works without it. Crossmark signs each payment; this page and its server hold no key.
+// Paid Sends go to /paid/chat, which relays to the PAYWALL (not the gateway key), so each one is a real x402 payment.
+let walletMod = null, paidNet = null, payer = null;
+async function wallet() { return walletMod ??= await import("/wallet.js"); }
+async function paidNetwork() {
+  const r = await fetch("/paid/network");
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error ?? `The paywall's chat price could not be read (HTTP ${r.status}).`);
+  return j;
+}
+const explorer = (n) => `https://${n?.name === "mainnet" ? "livenet" : "testnet"}.xrpl.org`;
+function payInfo(text, isErr = false) { const p = $("payInfo"); p.textContent = text; p.className = isErr ? "err" : "muted"; }
+async function refreshPayer() {
+  if (!$("payMode").checked) { payInfo("Off: Send goes straight to the gateway with the test key, and nothing is paid."); return; }
+  try {
+    const w = await wallet();
+    paidNet = await paidNetwork();
+    const saved = w.savedAccount();
+    payer = saved && saved.caip2 === paidNet.caip2 ? saved.address : null;
+    if (!payer) { payInfo(`On: each Send pays ${paidNet.price} RLUSD on ${paidNet.name} to ${paidNet.payTo}. The first Send connects Crossmark.`); return; }
+    let bal = "";
+    try { const b = await w.balance(payer, paidNet); bal = ` (${b.rlusd} RLUSD${b.trustLineOpen ? "" : ", no RLUSD trust line"})`; } catch { /* the ledger server is down: the paywall decides */ }
+    payInfo(`On: each Send pays ${paidNet.price} RLUSD on ${paidNet.name} from ${payer}${bal} to ${paidNet.payTo}.`);
+  } catch (e) { payInfo(e.message, true); }
+}
+$("payMode").onchange = refreshPayer;
+
+/** One paid Send: the same shape as call("/gateway/chat") plus the receipt, or null when this press only connected Crossmark. */
+async function paidChat(body) {
+  const w = await wallet();
+  paidNet = await paidNetwork();
+  if (!payer) {
+    payer = await w.connect(paidNet.caip2);
+    await refreshPayer();
+    alert("Crossmark is connected. Press Send again to pay: Crossmark will ask you to approve the payment.");
+    return null;
+  }
+  payInfo("Approve the payment in Crossmark…");
+  const a = await w.payAndChat(payer, paidNet, body, "/paid/chat", () => payInfo("Payment approved, waiting for the answer…"));
+  refreshPayer();
+  if (a.error) return { status: a.status, headers: {}, body: { error: { message: a.error } }, transaction: a.transaction ?? null };
+  return {
+    status: 200,
+    headers: { ...(a.model ? { "x-chainaim-model": a.model } : {}), ...(a.dataClass ? { "x-chainaim-data-class": a.dataClass } : {}) },
+    body: { choices: [{ message: { content: a.answer } }] },
+    transaction: a.payment.transaction,
+  };
+}
+
+$("send").onclick = () => busy($("send"), async () => {
+  const before = await call("/leaving");
+  const last = before.length ? before[before.length - 1].at : "";
+  const question = $("msg").value.trim();
+  if (!question) return alert("Type a question first.");
+  // Whole folder: re-read the folder now, so files added since the last Send are included.
+  if (folder.mode === "whole" && folder.config?.enabled && folder.path) {
+    try { await refreshWholeFolder(); say(`${dataFiles.filter((d) => d.origin === "whole").length} file(s) from this folder sent with this question.`); }
+    catch (e) { say(e.message, true); return alert(e.message); }
+  }
+  // Refuse here, with the numbers, rather than letting the gateway reject a prompt that cannot fit the picked model.
+  const total = nextChars(), room = promptRoom();
+  if (total > room) { updateSize(); return alert(`This question would send ${total.toLocaleString()} characters; ${pickedModel ?? "the model"} takes about ${room.toLocaleString()}. Remove data, untick earlier answers, use Pick files, or pick a model with more room.`); }
+  // chainaim_restore: false asks the gateway to leave the placeholders in the answer; it never reaches the model.
+  const chatBody = { ...(pickedModel ? { model: pickedModel } : {}), messages: buildMessages(question), ...(KEEP_PLACEHOLDERS ? { chainaim_restore: false } : {}) };
+  const r = $("payMode").checked ? await paidChat(chatBody) : await call("/gateway/chat", chatBody);
+  if (!r) return; // this press only connected Crossmark
+  await new Promise((ok) => setTimeout(ok, 400));
+  const after = (await call("/leaving")).filter((s) => s.at > last);
+  const out = $("chatOut"); out.replaceChildren();
+  if (r.status !== 200) out.append(block(el("p", { className: "err", textContent: `HTTP ${r.status}: ${r.body?.error?.message ?? ""}` })));
+  else {
+    const h = r.headers;
+    out.append(block(verdict(
+      classCell(h["x-chainaim-data-class"]),
+      cell("Classifier", h["x-chainaim-classifier"] ?? "?", "", "Jev never sees PHI"),
+      cell("Served by", (h["x-chainaim-model"] ?? "?").split("/").pop(), "", h["x-chainaim-model"] ?? ""),
+      // Where the model ran (gateway x-chainaim-zone): local = this PC; public-api = a hosted model, which received masked text only.
+      cell("Zone", h["x-chainaim-zone"] ?? "-", "", h["x-chainaim-zone"] === "public-api" ? "hosted model: it received the masked text only" : h["x-chainaim-zone"] === "local" ? "ran on this PC" : "zone not reported by this gateway"))));
+    // The stand-in's model ids start with "stub/": it only echoes the text, so say so instead of looking like a broken answer.
+    if ((h["x-chainaim-model"] ?? "").startsWith("stub/")) out.append(block(el("p", { className: "err", textContent: "Stand-in mode: this fake model only echoes your text back. For real answers, run use-real-models.cmd in the test-console folder and paste your OpenRouter key when it asks." })));
+    const answer = r.body.choices?.[0]?.message?.content ?? "";
+    // The gateway says whether it put the values back; a paid answer carries no such header, so the setting decides.
+    const kept = h["x-chainaim-restored"] ? h["x-chainaim-restored"] === "no" : KEEP_PLACEHOLDERS;
+    const views = await publishPages(answer);
+    out.append(block(el("span", { className: "blabel", textContent: "Conversation" }),
+      el("div", { className: "chat" },
+        bubble("you", "You", el("div", { textContent: question })),
+        kept
+          ? bubble("ai", "Answer · placeholders kept (as the model wrote it)", el("div", {}, viewLinks(views), withPlaceholders(answer)))
+          : bubble("ai", "Answer · placeholders restored", el("div", {}, viewLinks(views), markdown(answer))))));
+    // Keep the answer text only (not the R1 "reasoning" field), ticked, so a follow-up builds on it. An answer with
+    // placeholders kept starts unticked: sent back, its <PERSON_1> could be numbered for a different value next time.
+    turns.push({ q: question, a: answer, model: r.headers["x-chainaim-model"] ?? "", use: !kept, views });
+    renderTurns();
+    updateSize();
+  }
+  // A paid Send shows its receipt, also when the answer failed after the payment settled.
+  if (r.transaction) out.append(block(el("span", { className: "blabel", textContent: "Payment" }),
+    el("p", {}, `Paid ${paidNet?.price ?? ""} RLUSD on ${paidNet?.name ?? "the XRP Ledger"} · receipt `,
+      el("a", { href: `${explorer(paidNet)}/transactions/${r.transaction}`, target: "_blank", rel: "noopener", textContent: `${r.transaction.slice(0, 8)}…${r.transaction.slice(-6)} ↗` }))));
+  const model = after.filter((s) => s.kind === "model");
+  const jev = after.filter((s) => s.kind === "jev");
+  // An answered chat that the stand-in never saw means the real models are on: these two panels only record the stand-in.
+  const realMode = r.status === 200 && !model.length;
+  const m = col(colhead("Sent to the model", "masked"));
+  for (const s of model) { m.append(pill("data_collection: " + (s.body.provider?.data_collection ?? "?"), s.body.provider?.data_collection === "deny" ? "phi" : "")); for (const msg of s.body.messages ?? []) m.append(withPlaceholders(`[${msg.role}] ${typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content ?? msg.tool_calls)}`)); }
+  if (!model.length) m.append(empty(realMode ? "Not shown: real models are on, and this panel only records the stand-in. The model received the masked text only." : "Nothing recorded: the request was refused, so no model answered."));
+  const j = col(colhead("Sent to Jev", "classifier"));
+  if (jev.length) for (const s of jev) j.append(withPlaceholders(s.body.request)); else j.append(empty(realMode ? "Not shown: real models are on, and this panel only records the stand-in." : "Nothing. Jev is never called for health data."));
+  out.append(el("details", { className: "behind", open: true }, el("summary", { textContent: "Behind the scenes: what left ChainAim" }), el("div", { className: "row" }, m, j)));
+});
+
+for (const b of document.querySelectorAll("[data-route]")) b.onclick = () => busy(b, async () => {
+  const r = await call("/paywall/" + b.dataset.route);
+  const out = $("payOut"); out.replaceChildren();
+  const a = r.accepts?.[0];
+  out.append(block(verdict(
+    cell("Status", r.status, r.status === 402 ? "clear" : "phi", r.status === 402 ? "payment required" : "unexpected"),
+    cell("Route", b.dataset.route),
+    cell("Price", a ? a.price : "—", "", a ? "RLUSD per call" : "no quote returned"),
+    cell("Bazaar", r.bazaar ? "on" : "off", "", r.bazaar ? "discovery metadata" : ""))));
+  for (const q of r.accepts ?? []) {
+    const main = q.network === "xrpl:0";
+    const explorer = `https://${main ? "livenet" : "testnet"}.xrpl.org`;
+    const link = (href, text, cls = "") => el("a", { href, target: "_blank", rel: "noopener", textContent: text, className: cls });
+    const row = (k, ...v) => el("tr", {}, el("th", { textContent: k }), el("td", {}, ...v));
+    out.append(block(el("span", { className: "blabel", textContent: "The quote in full" }),
+      el("div", { className: "scroll" }, el("table", { className: "kv" },
+        row("Price", `${q.price} RLUSD`),
+        row("Network", main ? "XRPL MainNet" : q.network === "xrpl:1" ? "XRPL TestNet" : q.network),
+        row("Asset", `RLUSD (currency code ${q.asset})`),
+        row("Issuer", link(`${explorer}/accounts/${q.issuer}`, q.issuer, "addr")),
+        row("Pay to", link(`${explorer}/accounts/${q.payTo}`, q.payTo, "addr")),
+        row("Invoice", q.invoiceId),
+        row("Bazaar", r.bazaar ? "discovery metadata is on" : "off", el("span", { className: "small", textContent: r.bazaar ? "  (the listing itself appears after the first settled payment)" : "" })))),
+      el("p", { className: "muted", textContent: "No payment is made here. The paywall strips payment headers before the gateway sees the request." })));
+  }
+  if (r.body) out.append(block(el("span", { className: "blabel", textContent: "Response body" }), pre(r.body)));
+});
+
+$("ledger").onclick = () => busy($("ledger"), async () => {
+  const r = await call("/ledger");
+  const rows = [...r.lines].reverse();
+  const out = $("ledgerOut"); out.replaceChildren();
+  if (!rows.length) return out.append(block(empty("No entries came back. The ledger is read with \"docker exec ca-gateway\", so this is empty when the gateway runs outside Docker.")));
+  const phi = rows.filter((l) => typeof l === "object" && l.dataClass === "PHI").length;
+  const refused = rows.filter((l) => typeof l === "object" && Number(l.status) >= 500).length;
+  out.append(block(verdict(
+    cell("Entries shown", rows.length),
+    cell("PHI requests", phi, phi ? "phi" : ""),
+    cell("Refused", refused, refused ? "phi" : ""),
+    cell("Text stored", 0, "clear", "by design"))));
+  const t = el("table");
+  t.append(el("thead", {}, el("tr", {}, ...["Time (UTC)", "Route", "Class", "Found", "Model", "Status", "Took"].map((h) => el("th", { textContent: h })))));
+  const tb = el("tbody");
+  for (const l of rows) {
+    if (typeof l === "string") { tb.append(el("tr", {}, el("td", { colSpan: 7, textContent: l }))); continue; }
+    const tries = l.attempts ?? [], last = tries[tries.length - 1];
+    const took = l.latencyMs ?? (tries.length ? tries.reduce((n, a) => n + (a.ms ?? 0), 0) : undefined);
+    tb.append(el("tr", {}, el("td", { className: "num", textContent: (l.ts ?? "").slice(11, 19) }), el("td", { textContent: l.endpoint ?? "" }),
+      el("td", {}, l.dataClass ? classPill(l.dataClass) : "-"),
+      el("td", { textContent: Object.entries(l.entityCounts ?? {}).map(([k, v]) => `${k} ×${v}`).join(", ") || "-" }),
+      el("td", { textContent: last?.model ?? "-" }), el("td", { className: "num", textContent: String(l.status ?? last?.status ?? "-") }), el("td", { className: "num", textContent: took === undefined ? "-" : `${took} ms` })));
+  }
+  t.append(tb);
+  out.append(block(el("span", { className: "blabel", textContent: "Last entries" }), el("div", { className: "scroll" }, t),
+    el("p", { className: "muted", textContent: "Each line holds classes, counts and model names only. No text, no placeholders, no map." })));
+});
+// ---- Ask across files: /analyst/relations and /crossask (services/analyst/src/crossask.ts on the console server) ----
+function resultTable(columns, rows) {
+  const t = el("table");
+  t.append(el("thead", {}, el("tr", {}, ...columns.map((h) => el("th", { textContent: h })))));
+  const tb = el("tbody");
+  for (const r of rows) tb.append(el("tr", {}, ...columns.map((c) => el("td", { className: typeof r[c] === "number" ? "num" : "", textContent: r[c] === null || r[c] === undefined ? "" : String(r[c]) }))));
+  t.append(tb);
+  return el("div", { className: "scroll" }, t);
+}
+function relationsBlock(relations) {
+  if (!relations.length) return block(el("span", { className: "blabel", textContent: "How the files relate" }), empty("No columns in different files share their values."));
+  const t = el("table");
+  t.append(el("thead", {}, el("tr", {}, ...["Column", "Relates to", "Link", "Cardinality", "Overlap", "Shared values"].map((h) => el("th", { textContent: h })))));
+  const tb = el("tbody");
+  for (const r of relations) tb.append(el("tr", {}, el("td", { textContent: `${r.a.file} · ${r.a.column}` }), el("td", { textContent: `${r.b.file} · ${r.b.column}` }),
+    el("td", {}, pill(r.link, r.link === "key" ? "good" : "")), el("td", { textContent: r.cardinality }), el("td", { className: "num", textContent: `${Math.round(r.overlap * 100)}%` }), el("td", { className: "num", textContent: String(r.shared) })));
+  t.append(tb);
+  return block(el("span", { className: "blabel", textContent: "How the files relate (from the values; no data is shown or sent)" }), el("div", { className: "scroll" }, t));
+}
+async function postData(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const j = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+  if (!res.ok) throw new Error(j.error ?? `HTTP ${res.status}`);
+  return j;
+}
+// Its own folder picker: only folder names and a file list are read here, never file contents (the analyst reads them).
+const xf = { path: "", browse: null, files: [], error: "" };
+async function xOpen(path) {
+  xf.path = path; xf.browse = null; xf.error = "";
+  try { const r = await getJson(`/data/files?path=${enc(path)}`); xf.files = r.files.filter((f) => /^\.(csv|tsv|json)$/.test(f.ext)); }
+  catch (e) { xf.files = []; xf.error = e.message; }
+  xRender();
+}
+async function xBrowse(path) {
+  try { xf.browse = await getJson(`/data/folders?path=${enc(path ?? "")}`); xf.error = ""; } catch (e) { xf.error = e.message; }
+  xRender();
+}
+function xRender() {
+  const kids = [];
+  const change = el("button", { className: "ghost", type: "button", textContent: xf.browse ? "Close" : "Change folder…" });
+  change.onclick = () => { if (xf.browse) { xf.browse = null; xRender(); } else xBrowse(xf.path); };
+  kids.push(el("div", { className: "row-actions" }, pill(xf.path || "(no folder yet)"), change));
+  if (xf.browse) {
+    const b = xf.browse, rows = [];
+    if (b.path) {
+      const up = el("button", { className: "ghost", type: "button", textContent: b.parent ? "Up one level" : "Allowed folders" });
+      up.onclick = () => xBrowse(b.parent || "");
+      const use = el("button", { type: "button", textContent: "Use this folder" });
+      use.onclick = () => xOpen(b.path);
+      rows.push(el("div", { className: "row-actions" }, up, use, el("span", { className: "muted", textContent: b.path })));
+    }
+    const subs = b.folders.map((f) => { const go = el("button", { className: "ghost", type: "button", textContent: "› " + f.name }); go.onclick = () => xBrowse(f.path); return go; });
+    rows.push(subs.length ? el("div", { className: "row-actions" }, ...subs) : empty("No sub-folders here."));
+    kids.push(el("div", { className: "box" }, ...rows));
+  }
+  if (xf.error) kids.push(el("p", { className: "err", textContent: xf.error }));
+  else if (xf.path) kids.push(el("span", { className: "muted", textContent: xf.files.length ? `${xf.files.length} data file(s): ${xf.files.map((f) => f.name).join(", ")}` : "No CSV, TSV or JSON files listed here (JSON is listed only when .json is in extensions in config/data-sources.json; the analyst reads it either way)." }));
+  $("xFolder").replaceChildren(...kids);
+}
+// The two model lists follow the gateway's models (the chat tab's list), filled when this tab is opened.
+function xModels() {
+  const opts = [...$("model").options].filter((o) => o.value);
+  for (const [id, first] of [["xaskModel", null], ["xaskAnswerModel", "no worded answer: table only"]]) {
+    const sel = $(id), keep = sel.value;
+    sel.replaceChildren(...(first ? [el("option", { value: "", textContent: first })] : []), ...opts.map((o) => el("option", { value: o.value, textContent: o.textContent })));
+    if (keep && [...sel.options].some((o) => o.value === keep)) sel.value = keep;
+    else if (!first) sel.value = $("model").value || opts[0]?.value || "";
+  }
+}
+document.querySelector('nav.rail button[data-go="t5"]').addEventListener("click", () => { xModels(); if (!xf.path && !xf.browse) xBrowse(""); else xRender(); });
+$("xaskRel").onclick = () => busy($("xaskRel"), async () => {
+  const out = $("xaskOut"); out.replaceChildren();
+  if (!xf.path && xf.browse?.path) await xOpen(xf.browse.path); // browsed into a folder but did not press "Use this folder"
+  if (!xf.path) { out.append(block(empty("Pick a folder first (1. Folder)."))); return; }
+  try { const r = await postData("/analyst/relations", { folder: xf.path }); out.append(relationsBlock(r.relations)); out.append(block(el("span", { className: "blabel", textContent: "What the query model is given" }), pre(r.schema))); }
+  catch (e) { out.append(block(el("p", { className: "flag", textContent: e.message }))); }
+});
+$("xaskGo").onclick = () => busy($("xaskGo"), async () => {
+  const out = $("xaskOut"); out.replaceChildren();
+  if (!xf.path && xf.browse?.path) await xOpen(xf.browse.path); // browsed into a folder but did not press "Use this folder"
+  if (!xf.path) { out.append(block(empty("Pick a folder first (1. Folder)."))); return; }
+  const question = $("xaskQ").value.trim(), sql = $("xaskSql").value.trim(), answerModel = $("xaskAnswerModel").value;
+  if (!question) { out.append(block(empty("Type a question first."))); return; }
+  out.append(block(el("p", { className: "muted", textContent: "Working: relations, query, result" + (answerModel ? ", answer" : "") + "… (a reasoning or CPU model can take a minute)" })));
+  let r;
+  try { r = await postData("/crossask", { folder: xf.path, question, model: $("xaskModel").value || undefined, answerModel: answerModel || undefined, phrase: answerModel ? "llm" : "none", sql: sql || undefined }); }
+  catch (e) { out.replaceChildren(block(el("p", { className: "flag", textContent: e.message }))); return; }
+  out.replaceChildren();
+  const served = r.served.filter((s) => s.model);
+  const sentData = r.sentToModel.some((s) => s.hasData);
+  out.append(block(verdict(
+    cell("Query by", sql ? "you" : served[0]?.model ?? "-", "", served[0]?.zone ? `zone ${served[0].zone}` : ""),
+    cell("Answer by", r.answer !== null ? served.at(-1)?.model ?? "-" : "-", "", r.answer !== null && served.at(-1)?.zone ? `zone ${served.at(-1).zone}` : "table only"),
+    cell("Rows", r.result ? r.result.rows.length + (r.result.truncated ? "+" : "") : "-"),
+    cell("Data sent to a model", sentData ? "result rows" : "none", sentData ? "" : "clear", sentData ? "masked by the gateway" : "column names only"))));
+  if (r.error) out.append(block(el("p", { className: "flag", textContent: r.error })));
+  for (const w of r.warnings ?? []) out.append(block(el("p", { className: "flag", textContent: `Warning: ${w}. Do not trust these totals.` })));
+  if (r.answer !== null) out.append(block(el("span", { className: "blabel", textContent: "Answer" }), withPlaceholders(r.answer),
+    el("p", { className: r.unverified.length ? "flag" : "muted", textContent: r.unverified.length ? `Numbers or placeholders not in the result: ${r.unverified.join(", ")}` : "Every number in the answer is in the result." })));
+  if (r.result) out.append(block(el("span", { className: "blabel", textContent: "Result (computed on this PC)" }), resultTable(r.result.columns, r.result.rows)));
+  const last = r.attempts.at(-1);
+  if (last) out.append(el("details", { className: "behind" }, el("summary", { textContent: `The query${r.attempts.length > 1 ? ` (${r.attempts.length} tries)` : ""}` }),
+    ...r.attempts.map((a, i) => block(el("span", { className: "blabel", textContent: `Try ${i + 1}${a.error ? " (failed)" : ""}` }), pre(a.sql || "(no query in the reply)"), a.error ? el("p", { className: "flag", textContent: a.error }) : null))));
+  out.append(el("details", { className: "behind" }, el("summary", { textContent: "How the files relate" }), relationsBlock(r.relations)));
+});
+</script>
+</body>
+</html>

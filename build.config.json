@@ -1,0 +1,95 @@
+{
+  "_README": "Single source of truth for harness behaviour. Hooks and commands read this file. Change values here; never edit hook internals.",
+
+  "project": {
+    "name": "shortlink",
+    "description": "URL shortener REST API over a real SQLite file. Pilot project for this harness."
+  },
+
+  "commands": {
+    "_README": "Shell commands for this project's stack. An empty string disables that step.",
+    "install": "npm install",
+    "typecheck": "npm run typecheck",
+    "lint": "",
+    "test": "npm test",
+    "build": "npm run build",
+    "servicesUp": "",
+    "servicesDown": ""
+  },
+
+  "gate": {
+    "_README": "The Stop hook. Blocks Claude from ending its turn while these commands fail. Only active while the flag file exists, so normal chat is unaffected.",
+    "enabled": true,
+    "runOnStop": ["typecheck", "test"],
+    "activeFlagFile": ".claude/.build-active",
+    "maxOutputChars": 3000
+  },
+
+  "noMocks": {
+    "_README": "PostToolUse scan of every written/edited file. A match is reported back to Claude as an error it must fix.",
+    "enabled": true,
+    "scanExtensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".kt", ".sol", ".rb", ".cs"],
+    "ignorePaths": ["node_modules", "dist", "build", "out", "target", "coverage", ".git", ".build-snapshots", ".claude/hooks", "reports", "architecture.md", "architecture.TEMPLATE.md", "TASKS.md"],
+    "allowInPaths": [],
+    "patterns": [
+      { "label": "TODO marker", "regex": "\\bTODO\\b", "flags": "i" },
+      { "label": "FIXME marker", "regex": "\\bFIXME\\b", "flags": "i" },
+      { "label": "XXX marker", "regex": "\\bXXX\\b", "flags": "" },
+      { "label": "mock", "regex": "\\bmocks?\\b", "flags": "i" },
+      { "label": "stub", "regex": "\\bstubs?\\b", "flags": "i" },
+      { "label": "placeholder", "regex": "\\bplaceholder\\b", "flags": "i" },
+      { "label": "dummy value", "regex": "\\bdummy\\b", "flags": "i" },
+      { "label": "fake data", "regex": "\\bfake[ _-]?(data|impl|client|service|response)\\b", "flags": "i" },
+      { "label": "'for now' shortcut", "regex": "for now[,.]?\\s", "flags": "i" },
+      { "label": "Python NotImplemented", "regex": "NotImplementedError|raise\\s+NotImplemented", "flags": "" },
+      { "label": "JS not-implemented throw", "regex": "throw new Error\\(\\s*[\"'`][^\"'`]*not implemented", "flags": "i" },
+      { "label": "Go not-implemented panic", "regex": "panic\\(\\s*\"(TODO|not implemented)", "flags": "i" },
+      { "label": "Rust todo/unimplemented macro", "regex": "\\b(todo!|unimplemented!)\\(", "flags": "" },
+      { "label": "hardcoded sample value", "regex": "\\bhard[ _-]?coded\\b", "flags": "i" },
+      { "label": "empty Python body", "regex": "^\\s*pass\\s*(#.*)?$", "flags": "m" }
+    ]
+  },
+
+  "envDocumentation": {
+    "_README": "Every environment variable the code reads must appear in MANUAL_SETUP.md in the same turn it is introduced.",
+    "enabled": true,
+    "file": "MANUAL_SETUP.md",
+    "scanExtensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".go", ".rs", ".java", ".kt", ".rb", ".cs"],
+    "ignoreVars": ["NODE_ENV", "PORT", "PWD", "HOME", "PATH", "CI", "LOG_LEVEL", "TZ"]
+  },
+
+  "policy": {
+    "_README": "What happens when a task cannot be made to pass, and what runs after the task list is exhausted.",
+    "maxAttemptsPerTask": 3,
+    "onTaskFailure": "skip-and-continue",
+    "snapshotsEnabled": true,
+    "requireRealExecutionEvidence": true,
+    "autoAudit": true,
+    "autoReport": true
+  },
+
+  "snapshots": {
+    "_README": "Rollback without git. Run before each task via: node .claude/hooks/snapshot.js --label task-NN",
+    "dir": ".build-snapshots",
+    "ignorePaths": ["node_modules", "dist", "build", "out", "target", "coverage", ".git", ".build-snapshots", ".next", "__pycache__", ".venv", "data", "reports"],
+    "maxFileSizeBytes": 2000000
+  },
+
+  "reports": {
+    "_README": "Each /build run archives its reports into its own timestamped folder, so runs can be compared. With no git history, this archive is the project's only record of what happened when. STATE.md, TASKS.md and MANUAL_SETUP.md stay in the project root and are NOT moved here — STATE.md is the resume point, and MANUAL_SETUP.md is the fixed path the env-doc hook checks against. A snapshot copy of MANUAL_SETUP.md is archived with each run.",
+    "enabled": true,
+    "dir": "reports",
+    "indexFile": "reports/INDEX.md",
+    "archive": ["BUILD_REPORT.md", "AUDIT.md", "BUILD_LOG.md", "PLAN_REVIEW.md", "MANUAL_SETUP.md"]
+  },
+
+  "files": {
+    "architecture": "architecture.md",
+    "tasks": "TASKS.md",
+    "state": "STATE.md",
+    "buildLog": "BUILD_LOG.md",
+    "prereqs": "PREREQS.md",
+    "manualSetup": "MANUAL_SETUP.md",
+    "buildReport": "BUILD_REPORT.md"
+  }
+}

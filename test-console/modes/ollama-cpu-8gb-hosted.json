@@ -1,0 +1,22 @@
+{
+  "description": "Local Ollama models on a CPU-only PC (as ollama-cpu-8gb) PLUS hosted/nemotron-nano-reasoning, a free open-weight OpenRouter model (zone public-api), used only when named; never by chainaim/auto and never for health data. Asks for OPENROUTER_API_KEY (hidden).",
+  "modelSource": "catalog",
+  "localModels": "config/local-models.cpu-hosted.json",
+  "mountConfig": true,
+  "secretEnv": [
+    "OPENROUTER_API_KEY"
+  ],
+  "staticEnv": {},
+  "flags": [
+    "--attempt-timeout-ms",
+    "280000",
+    "--max-attempts",
+    "1",
+    "--auto-zones",
+    "local",
+    "--phi-zones",
+    "local"
+  ],
+  "testTimeoutSec": 600,
+  "doneMessage": "Local CPU models plus hosted/nemotron-nano-reasoning are on. Start the console with: node test-console\\console\\server.ts --models-file config\\local-models.cpu-hosted.json  then pick hosted/nemotron-nano-reasoning in 02 Private chat. Scripts: --model hosted/nemotron-nano-reasoning."
+}

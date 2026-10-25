@@ -1,0 +1,17 @@
+Jupiter Knitting - supplier payment dispute (synthetic test document; every name and number is invented)
+
+Name: Arjun Mehtavale
+Role: Accounts payable lead
+Contact: arjun.m@jupiterknit.example
+
+Supplier: Loomline Yarns
+Supplier account no 004512378901
+Purchase order PO-7731, 2,400 kg merino blend, invoice INV-5518 for 9,850 USD.
+
+What happened: INV-5518 was paid on 3 October and again on 9 October, the second
+time from the batch run. Loomline's billing contact Ms. Priya Vasquez says the
+second payment will be held as credit against the next order unless we ask for it
+back in writing within 30 days.
+
+Open questions: should we take the credit or ask for a refund, and what should the
+written request say?

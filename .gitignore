@@ -1,0 +1,46 @@
+# secrets and sensitive runtime data: never commit
+.env
+.env.*
+!.env.example
+secrets/
+data/
+# local model weights (large, downloaded)
+models
+models/
+*.gguf
+# build/deps
+node_modules/
+packages/route-engine/node_modules/
+
+# local test console: its gateway key stays on this PC
+test-console/local-gateway-key.txt
+# generated from config/local-models.json by scripts/local-models.ts on every switch
+config/generated/
+
+# Vercel build output and local project link (services/web)
+.vercel/
+.claude/settings.local.json
+.claude/
+
+# local data-folder settings for the test console (paths to private data); the example is committed
+config/data-sources.json
+
+# test rig run records (services/paywall/scripts/rig.ts): addresses and transactions, never text or seeds
+rig/out/
+
+# --- added for XRPL-AI-AP4M-TR1 (AP4M / XRPL EVM) ---
+# wallet keys and key files
+*.pem
+*.key
+*.keystore
+keystore/
+wallets/
+# AP4M SDK state: signed vouchers (purchase.json) and the merchant's payment store
+**/agent-state/
+**/merchant-state/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+# vendor-confidential decks and installers stay out of git
+*.pptx
+*.msi

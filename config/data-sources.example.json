@@ -1,0 +1,27 @@
+{
+  "notes": "Copy to config/data-sources.json (gitignored) and edit. The test console (test-console/console/server.ts --data-config) re-reads it on every call, so edits need no restart. The page can browse and read ONLY inside allowedRoots (links leading out are refused); it starts in defaultFolder. defaultMode 'whole' sends every file in the folder with each question (re-read at each Send); 'pick' starts with file checkboxes. Keep data folders outside every git repository, outside OneDrive or other sync tools, and outside the Claude filesystem connector's allowed folders. extensions: the file types listed and loaded (PDF text is extracted in the browser). maxBytes: per extension, '*' for the rest. exclude: file name patterns (* and ?) to hide. maxFiles: most files listed per folder. hideFolders: folder-name patterns never listed (the analyst keeps its recipes and run manifests in _analyst under the first allowed root). Nothing is ever written or created.",
+  "allowedRoots": [
+    "C:\\PRIV-AI-DATA"
+  ],
+  "defaultFolder": "C:\\PRIV-AI-DATA\\chainaim3003\\fin\\statements",
+  "defaultMode": "whole",
+  "extensions": [
+    ".csv",
+    ".tsv",
+    ".txt",
+    ".pdf"
+  ],
+  "maxBytes": {
+    ".pdf": 20000000,
+    "*": 2000000
+  },
+  "exclude": [
+    "~$*",
+    "*draft*",
+    ".*"
+  ],
+  "hideFolders": [
+    "_*"
+  ],
+  "maxFiles": 500
+}

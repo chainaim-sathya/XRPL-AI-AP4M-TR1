@@ -1,0 +1,94 @@
+{
+  "notes": "CPU-only PC (8 GB RAM): local Ollama models PLUS two hosted models in ONE gateway, so nothing needs switching: hosted/nemotron-nano-reasoning (OpenRouter free, zone public-api, key OPENROUTER_API_KEY) and bedrock/nemotron-nano-3-30b (Amazon Bedrock, ap-southeast-2, zone private-cloud, key BEDROCK_API_KEY). Used by test-console/modes/ollama-cpu-8gb-all.json, which starts the gateway with --auto-zones local --phi-zones local: chainaim/auto and health data stay on this PC; a hosted model answers only when a client names it. Only masked text reaches any model. Keys are read from the environment (hidden prompts in switch-models.ps1), never written. Bedrock's deployment, context and price are copied from config/catalog.bedrock.json (v1.0.4): baseUrl verified there by rig R5; price = AWS Standard on-demand for Nemotron 3 Nano 30B A3B in Asia Pacific (Sydney), USD 0.0618 / 0.2472 per 1M input / output tokens, read from aws.amazon.com/bedrock/pricing on 2026-10-24 (per that file).",
+  "ollamaUrl": "http://host.docker.internal:11434/v1",
+  "defaultModel": "local/qwen2.5-3b",
+  "defaults": {
+    "numCtx": 8192,
+    "maxOutputTokens": 2048,
+    "supportsTools": false,
+    "quality": 5,
+    "tasks": [
+      "chat"
+    ],
+    "speed": "medium"
+  },
+  "models": [
+    {
+      "id": "local/qwen2.5-3b",
+      "servedModel": "qwen2.5:3b",
+      "supportsTools": true,
+      "quality": 6,
+      "tasks": [
+        "chat",
+        "extraction",
+        "rewrite",
+        "tool_use",
+        "long_document"
+      ]
+    },
+    {
+      "id": "local/qwen2.5-1.5b",
+      "servedModel": "qwen2.5:1.5b-instruct",
+      "supportsTools": true,
+      "quality": 4,
+      "tasks": [
+        "chat",
+        "extraction",
+        "rewrite"
+      ],
+      "speed": "fast"
+    },
+    {
+      "id": "local/deepseek-r1-1.5b",
+      "servedModel": "deepseek-r1:1.5b",
+      "quality": 4,
+      "tasks": [
+        "chat",
+        "reasoning"
+      ],
+      "speed": "slow"
+    },
+    {
+      "id": "hosted/nemotron-nano-reasoning",
+      "servedModel": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "zone": "public-api",
+      "numCtx": 32768,
+      "supportsTools": false,
+      "quality": 7,
+      "tasks": [
+        "chat",
+        "reasoning",
+        "extraction",
+        "rewrite",
+        "long_document"
+      ],
+      "speed": "medium"
+    },
+    {
+      "id": "bedrock/nemotron-nano-3-30b",
+      "servedModel": "nvidia.nemotron-nano-3-30b",
+      "baseUrl": "https://bedrock-runtime.ap-southeast-2.amazonaws.com/openai/v1",
+      "apiKeyEnv": "BEDROCK_API_KEY",
+      "zone": "private-cloud",
+      "numCtx": 32768,
+      "supportsTools": true,
+      "quality": 8,
+      "tasks": [
+        "chat",
+        "extraction",
+        "rewrite",
+        "code",
+        "reasoning",
+        "tool_use",
+        "long_document"
+      ],
+      "speed": "fast",
+      "pricing": {
+        "inputPerM": 0.0618,
+        "outputPerM": 0.2472
+      }
+    }
+  ]
+}

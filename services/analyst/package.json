@@ -1,0 +1,18 @@
+{
+  "name": "chainaim-analyst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exact cross-file analysis of CSV/TSV folders (DuckDB, in memory) for the ChainAim test console. Compute only: no model calls, no keys, listens on 127.0.0.1.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "fixtures": "node scripts/make-fixtures.ts"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.6-r.1"
+  }
+}

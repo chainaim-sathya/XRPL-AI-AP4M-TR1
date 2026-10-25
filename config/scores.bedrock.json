@@ -1,0 +1,46 @@
+{
+  "version": "bedrock-2026-10-24",
+  "notes": "Score table for config/catalog.bedrock.json (gateway --scores). Weights and defaults copied from config/generated/scores.local.json. Nemotron 3 Nano on Bedrock ranks first (quality 8; speed fast: 254-423 ms per Converse call measured 2026-10-24). local/qwen2.5-3b is the fallback (quality 7; speed medium, because on this CPU PC it took about 8-18 s per answer, BUILD_LOG). These quality numbers are judgement, not an evaluation.",
+  "weights": {
+    "qualityByDifficulty": [0.5, 0.75, 1, 1.25, 1.5],
+    "taskMatch": 2,
+    "domainMatch": 2,
+    "speedWhenEasy": { "fast": 2, "medium": 1, "slow": 0 }
+  },
+  "defaults": {
+    "qualityBySize": [
+      [300, 8],
+      [100, 7],
+      [25, 6],
+      [8, 5],
+      [0, 3]
+    ],
+    "unknownSizeQuality": 1,
+    "speedBySize": [
+      [100, "slow"],
+      [25, "medium"],
+      [0, "fast"]
+    ],
+    "unknownSizeSpeed": "slow"
+  },
+  "models": {
+    "bedrock/nemotron-nano-3-30b": {
+      "quality": 8,
+      "tasks": ["chat", "extraction", "rewrite", "code", "reasoning", "tool_use", "long_document"],
+      "speed": "fast",
+      "domains": []
+    },
+    "local/qwen2.5-3b": {
+      "quality": 7,
+      "tasks": ["chat", "extraction", "rewrite", "code", "reasoning", "tool_use", "long_document"],
+      "speed": "medium",
+      "domains": []
+    },
+    "local/qwen2.5-1.5b": {
+      "quality": 4,
+      "tasks": ["chat", "extraction", "rewrite"],
+      "speed": "fast",
+      "domains": []
+    }
+  }
+}

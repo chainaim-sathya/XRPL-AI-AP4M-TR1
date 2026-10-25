@@ -1,0 +1,5 @@
+{
+  "id": "t01",
+  "name": "Jupiter Knitting (synthetic test tenant)",
+  "seedPrefix": "XRPL_SEED_T01"
+}

@@ -1,0 +1,34 @@
+{
+  "name": "@chainaim/paywall",
+  "version": "0.1.0",
+  "private": true,
+  "description": "chainaim-paywall: x402 payments (RLUSD on the XRP Ledger) in front of the private chainaim-gateway.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test --test-force-exit \"test/*.test.ts\"",
+    "pay": "node scripts/pay.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.1",
+    "@x402/core": "2.27.0",
+    "@x402/extensions": "2.27.0",
+    "@x402/hono": "2.27.0",
+    "@x402/xrpl": "2.27.0",
+    "hono": "4.13.9",
+    "ripple-address-codec": "5.0.1"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "3.1156.0",
+    "@strands-agents/sdk": "1.20.0",
+    "exceljs": "4.4.0",
+    "mammoth": "1.13.0",
+    "unpdf": "1.9.1",
+    "x402-xrpl": "0.3.3",
+    "xrpl": "4.7.0",
+    "zod": "4.6.7"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "chainaim-evm-wallet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Create and check an XRPL EVM Sidechain wallet (key written to a file outside the repo, never printed).",
+  "type": "module",
+  "engines": { "node": ">=22.22" },
+  "scripts": { "wallet": "node evm-wallet.mjs" },
+  "dependencies": { "ethers": "6.13.4" }
+}

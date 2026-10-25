@@ -1,0 +1,5 @@
+{
+  "id": "t02",
+  "name": "Riverside Clinic (synthetic test tenant)",
+  "seedPrefix": "XRPL_SEED_T02"
+}

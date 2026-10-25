@@ -1,0 +1,36 @@
+{
+  "notes": "THE ONE FILE TO EDIT for local Ollama models. test-console/switch-models.ps1 -To ollama (use-ollama.cmd) reads it and generates config/generated/ (catalog, scores, Ollama Modelfiles); never edit the generated files. Each model gets `defaults` unless it overrides a value. numCtx is the context Ollama loads for that model (a per-model variant is created with `ollama create`, so no global OLLAMA_CONTEXT_LENGTH is needed) and the context the gateway plans with; it is capped at the model's trained maximum. maxOutputTokens is the budget for thinking + answer. Keep maxOutputTokens the same for every model: the gateway's --max-output-tokens is set to the smallest one, and a request asks for that much. quality/tasks/speed rank the models when a request names none; defaultModel always ranks first and is the UI pick list's default. GPU memory (8 GB on the RTX 3070 Ti) bounds numCtx: check `ollama ps` shows 100% GPU after a model loads.",
+  "ollamaUrl": "http://host.docker.internal:11434/v1",
+  "defaultModel": "local/deepseek-r1-8b",
+  "defaults": {
+    "numCtx": 32768,
+    "maxOutputTokens": 8192,
+    "supportsTools": false,
+    "quality": 5,
+    "tasks": ["chat"],
+    "speed": "fast"
+  },
+  "models": [
+    {
+      "id": "local/deepseek-r1-1.5b",
+      "servedModel": "deepseek-r1:1.5b",
+      "quality": 6,
+      "tasks": ["chat", "reasoning", "extraction", "long_document"]
+    },
+    {
+      "id": "local/qwen2.5-3b",
+      "servedModel": "qwen2.5:3b",
+      "supportsTools": true,
+      "quality": 5,
+      "tasks": ["chat", "extraction", "rewrite", "tool_use", "long_document"]
+    },
+    {
+      "id": "local/deepseek-r1-8b",
+      "servedModel": "deepseek-r1:8b",
+      "numCtx": 12288,
+      "quality": 7,
+      "tasks": ["reasoning", "chat"],
+      "speed": "slow"
+    }
+  ]
+}

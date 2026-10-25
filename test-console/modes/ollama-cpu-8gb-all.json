@@ -1,0 +1,23 @@
+{
+  "description": "ALL THREE in one gateway, no switching: local Ollama models (CPU PC) + hosted/nemotron-nano-reasoning (OpenRouter free, public-api) + bedrock/nemotron-nano-3-30b (AWS Bedrock Sydney, private-cloud). chainaim/auto and health data stay local (--auto-zones local --phi-zones local); a hosted model answers only when named. Asks for OPENROUTER_API_KEY and BEDROCK_API_KEY (hidden). Run -To ollama-cpu-8gb once first if the Qwen variants are missing.",
+  "modelSource": "catalog",
+  "localModels": "config/local-models.cpu-all.json",
+  "mountConfig": true,
+  "secretEnv": [
+    "OPENROUTER_API_KEY",
+    "BEDROCK_API_KEY"
+  ],
+  "staticEnv": {},
+  "flags": [
+    "--attempt-timeout-ms",
+    "280000",
+    "--max-attempts",
+    "1",
+    "--auto-zones",
+    "local",
+    "--phi-zones",
+    "local"
+  ],
+  "testTimeoutSec": 600,
+  "doneMessage": "Local + OpenRouter + Bedrock are on in one gateway. Name a model to use it: local/qwen2.5-3b, hosted/nemotron-nano-reasoning, bedrock/nemotron-nano-3-30b (chainaim/auto stays local). Console: node test-console\\console\\server.ts --models-file config\\local-models.cpu-all.json"
+}

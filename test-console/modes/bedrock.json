@@ -1,0 +1,11 @@
+{
+  "description": "Nemotron 3 Nano on Amazon Bedrock (ap-southeast-2) first, local Ollama Qwen as fallback. Catalog config/catalog.bedrock.json, scores config/scores.bedrock.json. Asks for BEDROCK_API_KEY hidden. Run -To ollama-cpu-8gb once first so the Qwen variants exist in Ollama.",
+  "modelSource": "catalog",
+  "catalog": "config/catalog.bedrock.json",
+  "mountConfig": true,
+  "secretEnv": ["BEDROCK_API_KEY"],
+  "staticEnv": {},
+  "flags": ["--scores", "/config/scores.bedrock.json", "--max-output-tokens", "2048", "--attempt-timeout-ms", "280000", "--max-attempts", "2"],
+  "testTimeoutSec": 300,
+  "doneMessage": "Bedrock Nemotron (with local Qwen fallback) is on. The test answer above names the model that served it (x-chainaim-model)."
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Stand-in model that echoes (the openrouter-stub container). No real model, no key.",
+  "modelSource": "openrouter-free",
+  "mountConfig": false,
+  "secretEnv": [],
+  "staticEnv": { "OR_DUMMY": "sk-or-dummy" },
+  "flags": ["--openrouter-base-url", "http://openrouter-stub:5003", "--openrouter-key-env", "OR_DUMMY"],
+  "testTimeoutSec": 90,
+  "doneMessage": "The stand-in model is back on."
+}

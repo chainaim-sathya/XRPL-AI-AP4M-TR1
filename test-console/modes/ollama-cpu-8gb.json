@@ -1,0 +1,11 @@
+{
+  "description": "Local Ollama models on a CPU-only PC with about 8 GB RAM. Registry config/local-models.cpu.json (qwen2.5-3b default, qwen2.5-1.5b, deepseek-r1-1.5b; context 8192). One long attempt per question.",
+  "modelSource": "catalog",
+  "localModels": "config/local-models.cpu.json",
+  "mountConfig": true,
+  "secretEnv": [],
+  "staticEnv": {},
+  "flags": ["--attempt-timeout-ms", "280000", "--max-attempts", "1"],
+  "testTimeoutSec": 600,
+  "doneMessage": "Local CPU models are on. Start the console with: node test-console\\console\\server.ts --models-file config\\local-models.cpu.json  then open http://127.0.0.1:8730/ (section 2). An attempt stops at 280 s."
+}

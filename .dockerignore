@@ -1,0 +1,11 @@
+.git
+**/node_modules
+.superpowers
+data
+models
+secrets
+.env
+.env.*
+eval
+docs
+test-console

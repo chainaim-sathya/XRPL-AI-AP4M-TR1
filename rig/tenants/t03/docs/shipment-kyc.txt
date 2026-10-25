@@ -1,0 +1,15 @@
+Harborline Traders - new buyer onboarding note (synthetic test document; every name and number is invented)
+
+Name: Tomas Ridgeway
+Company: Ridgeway Marine Supplies
+E-mail: tomas.r@ridgewaymarine.example
+PAN ABCPR1234K
+Bank: a/c 778812340055, IFSC HDFC0001234
+
+First order: 40 pallets of galvanised fittings, FOB Chennai, 31,200 USD, payment
+50 percent in advance and 50 percent against bill of lading.
+The buyer asked to change the remittance account by phone two days after the
+proforma was sent.
+
+Question for review: what checks should we run before accepting the account change,
+and is the payment split reasonable for a first order?

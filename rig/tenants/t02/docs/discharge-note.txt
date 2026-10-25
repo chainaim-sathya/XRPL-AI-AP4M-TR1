@@ -1,0 +1,16 @@
+Riverside Clinic - discharge summary (synthetic test document; every name and number is invented)
+
+Patient Name: Meera Thalavan
+MRN 448210
+Aadhaar 2345 6789 0123
+Attending: Dr. Samuel Okafor
+
+Diagnosis: type 2 diabetes, newly started on insulin; mild hypertension.
+Discharge medicines:
+- Metformin 500 mg twice daily with meals
+- Insulin glargine 10 units at bedtime
+- Amlodipine 5 mg once daily
+
+Follow-up: review in the diabetes clinic in 2 weeks with a fasting glucose log;
+HbA1c in 3 months. Call the clinic if fasting glucose stays above 250 mg/dL or
+there are signs of low sugar (shaking, sweating, confusion).

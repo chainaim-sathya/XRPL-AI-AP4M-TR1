@@ -1,0 +1,14 @@
+# Synthetic identifiers in sample-bank-statement.txt, one per line, as written in the file.
+# leak-check.ps1 fails if any of them appears in what the model or Jev received, or in the ledger.
+# Lines starting with # are comments.
+Priya Raman
+priya.raman@example.com
+98765 43210
+AJZPR4821K
+GB82 WEST 1234 5698 7654 32
+4111 1111 1111 1111
+Suresh Kumar
+Ananya Raman
+Karthik Subramanian
+karthik.s@northwind-example.com
+5550 0123

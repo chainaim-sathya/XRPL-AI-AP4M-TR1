@@ -1,0 +1,26 @@
+{
+  "name": "@chainaim/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PrivacyBuddy: a web page for private chat, masked on the device and paid per answer with x402.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "build:wallet": "node scripts/build-wallet.ts",
+    "build:vercel": "node scripts/build-vercel.ts",
+    "test": "node --test --test-force-exit \"test/*.test.ts\""
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.1",
+    "hono": "4.13.9"
+  },
+  "devDependencies": {
+    "@crossmarkio/sdk": "0.4.0",
+    "esbuild": "0.28.2",
+    "x402-xrpl": "0.3.3",
+    "xrpl": "4.7.0"
+  }
+}

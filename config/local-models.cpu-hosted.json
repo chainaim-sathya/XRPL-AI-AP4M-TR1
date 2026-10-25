@@ -1,0 +1,70 @@
+{
+  "notes": "CPU-only PC (8 GB RAM) local models, PLUS one hosted free open-weight model on OpenRouter (zone public-api). Same local entries as config/local-models.cpu.json (that file is unchanged and still used by mode ollama-cpu-8gb). Used by test-console/modes/ollama-cpu-8gb-hosted.json, which starts the gateway with --auto-zones local --phi-zones local: chainaim/auto never picks the hosted model and health data never goes to it; it is used only when a client names it (console model list, or --model / -Model in the scripts). Only masked text reaches it. The key is read from OPENROUTER_API_KEY (asked at a hidden prompt by switch-models.ps1, never written to a file). The hosted model's context and output are taken as written: reasoning models spend output tokens on thinking. Check availability first: npm run verify:openrouter.",
+  "ollamaUrl": "http://host.docker.internal:11434/v1",
+  "defaultModel": "local/qwen2.5-3b",
+  "defaults": {
+    "numCtx": 8192,
+    "maxOutputTokens": 2048,
+    "supportsTools": false,
+    "quality": 5,
+    "tasks": [
+      "chat"
+    ],
+    "speed": "medium"
+  },
+  "models": [
+    {
+      "id": "local/qwen2.5-3b",
+      "servedModel": "qwen2.5:3b",
+      "supportsTools": true,
+      "quality": 6,
+      "tasks": [
+        "chat",
+        "extraction",
+        "rewrite",
+        "tool_use",
+        "long_document"
+      ]
+    },
+    {
+      "id": "local/qwen2.5-1.5b",
+      "servedModel": "qwen2.5:1.5b-instruct",
+      "supportsTools": true,
+      "quality": 4,
+      "tasks": [
+        "chat",
+        "extraction",
+        "rewrite"
+      ],
+      "speed": "fast"
+    },
+    {
+      "id": "local/deepseek-r1-1.5b",
+      "servedModel": "deepseek-r1:1.5b",
+      "quality": 4,
+      "tasks": [
+        "chat",
+        "reasoning"
+      ],
+      "speed": "slow"
+    },
+    {
+      "id": "hosted/nemotron-nano-reasoning",
+      "servedModel": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "zone": "public-api",
+      "numCtx": 32768,
+      "supportsTools": false,
+      "quality": 7,
+      "tasks": [
+        "chat",
+        "reasoning",
+        "extraction",
+        "rewrite",
+        "long_document"
+      ],
+      "speed": "medium"
+    }
+  ]
+}
